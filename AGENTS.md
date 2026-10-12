@@ -7,7 +7,9 @@ Antes de agir, leia `../AGENTS.md` (raiz do AILab) e siga a ordem de leitura del
 (CONSTITUTION → HANDOFF → RULES → CONTEXT → `rules/<camada>.md`). Antigravity: veja também `../GEMINI.md`.
 
 ## Específico do Biblo
-- Em concepção: só há `README.md` e `LICENSE`. **Sem spec `BIBLO` aprovada em `../docs/Plan/`, não crie código.**
 - Repositório Git próprio. Branch de ticket: `agent/<codex|antigravity>/<ticket-id>`.
 - Skills, regras e workflows chegam por symlinks gerados por `../scripts/sync-ai.sh` (`.agents/skills`, `.agents/rules`, `.agent/workflows`).
-- Verificação: ainda não há comandos de build/test. A primeira spec do Biblo define os comandos e os registra em `../.ai/CONTEXT.md` § 4.
+- Documentação: `.docs/arquitetura.md`, `.docs/backend.md`, `.docs/design-system/`.
+- Verificação: `docker compose --profile test run --rm biblo_api_test` e `cd web && npm run verify`.
+- Design system: edite só `.docs/design-system/` e rode `npm run ds:sync`; as cópias em `web/` são geradas.
+- `./vault` é dado do usuário: testes nunca escrevem nele.

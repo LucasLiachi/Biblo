@@ -1,294 +1,133 @@
-# 📚 Biblo — Knowledge Studio Local-First
+<p align="center"><img src=".docs/design-system/brand/app-icon-ink.svg" width="72" alt="Biblo"></p>
 
-> **Canvas Infinito · Biblioteca Markdown Estilo Obsidian · Chat com IA (RAG Híbrido)**  
-> Gestão visual e textual do conhecimento em localhost com Docker, onde **seus arquivos locais são a única fonte da verdade**.
+# Biblo: Knowledge Studio local-first
 
----
-
-## 🌟 Visão Geral
-
-O **Biblo** é um espaço de trabalho integrado (*Knowledge Studio*) desenvolvido para unir três modos essenciais de pensamento:
-1. **Visual**: Desenhar diagramas, fluxogramas e mapas mentais em tela infinita.
-2. **Textual**: Escrever notas, documentações e pesquisas em Markdown com links bidirecionais.
-3. **Aumentado por IA**: Conversar com seus documentos e diagramas através de uma IA contextualizada que cruza textos e desenhos.
-
-### 💡 Filosofia Central: O Arquivo é a Fonte da Verdade
-Diferente de ferramentas que aprisionam seus dados em bancos relacionais proprietários ou na nuvem, o Biblo adota o comportamento **Local-First do Obsidian**:
-* **Seus dados são arquivos reais em disco** dentro da pasta `./vault/` (`.md`, `.excalidraw` e imagens em `assets/`).
-* Você pode abrir a pasta no VS Code, versionar com Git ou fazer backup simplesmente copiando a pasta.
-* O banco de dados (**PostgreSQL com pgvector**) armazena apenas **índices de busca, vetores e metadados**. Se o banco for deletado ou quebrar, o índice é **reconstruído automaticamente a partir do disco**.
+Notas em Markdown estilo Obsidian, diagramas e fluxos no Excalidraw e um copiloto que responde com base nos seus arquivos.
+Tudo roda em localhost, e **a pasta `./vault/` é a única fonte da verdade**.
 
 ---
 
-## 📐 Os 3 Recursos Centrais
+## O que o Biblo faz
 
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                                 BIBLO                                  │
-├───────────────────┬──────────────────────────────────┬─────────────────┤
-│    PAINEL 1       │             PAINEL 2             │    PAINEL 3     │
-│  📁 VAULT         │  🎨 CANVAS INFINITO              │  🤖 CHAT COM IA │
-│                   │                                  │                 │
-│ ├─ notas/         │ • Tela infinita (Excalidraw)     │ • Streaming SSE │
-│ │  ├─ arch.md     │ • Formas e setas conectadas      │ • RAG Híbrido   │
-│ │  └─ regras.md   │ • Autosave debounce (1.5s)       │ • Busca Texto+  │
-│ ├─ diagramas/     │ • Arquivo nativo .excalidraw     │   Vetorial      │
-│ │  └─ fluxo.excal │ • Parser semântico p/ RAG        │ • Citações      │
-│ └─ assets/        │                                  │   clicáveis     │
-│                   │                                  │                 │
-│ • [[wikilinks]]   │                                  │                 │
-│ • Backlinks       │                                  │                 │
-└───────────────────┴──────────────────────────────────┴─────────────────┘
-```
+| Painel | Recurso |
+| :--- | :--- |
+| **Vault** | Árvore de pastas do `./vault`: criar nota, diagrama e pasta em qualquer nível, renomear (`F2`), mover arrastando, excluir para `vault/.lixeira/`, filtro por nome |
+| **Editor** | CodeMirror 6 com modos Editar, Dividido e Visualizar; `[[wikilinks]]` com autocomplete e `Ctrl+clique`; checklists clicáveis; tabelas; fluxogramas Mermaid; imagens do vault; estrutura do documento; backlinks e links de saída |
+| **Canvas** | Excalidraw nativo (`.excalidraw` compatível com excalidraw.com e Obsidian), em português, com Mermaid para diagrama e fontes servidas localmente |
+| **Copiloto** | Chat com streaming SSE sobre o vault: busca híbrida (FTS em português sem acento + vetorial pgvector, fundidas por RRF) e citações clicáveis para o arquivo e a linha |
 
-### 1. 🎨 Canvas Infinito (Design & Fluxogramas)
-- **Motor**: `@excalidraw/excalidraw` (Licença MIT permissiva — ideal para MVPs que podem evoluir para produtos comerciais sem taxas ou marcas d'água).
-- **Recursos**: Tela infinita, formas geométricas, texto livre, agrupamentos e setas magnéticas ligadas a elementos.
-- **Armazenamento**: Salvo como arquivo JSON nativo `.excalidraw` dentro de `./vault/diagramas/`.
-- **Autosave**: Debounce de 1.5s que grava silenciosamente sem bloquear a edição.
+Garantias local-first:
 
-### 2. 📝 Biblioteca de Notas Estilo Obsidian
-- **Editor**: CodeMirror 6 com suporte a syntax highlighting para Markdown e Frontmatter YAML.
-- **Links Bidirecionais**: Suporte nativo a `[[wikilinks]]` e tabela de backlinks calculada automaticamente pelo indexador.
-- **Gestão de Imagens e Mídia**: Upload direto para a pasta `./vault/assets/`.
-- **Navegação**: Árvore hierárquica de pastas e arquivos refletindo fielmente a pasta `./vault`.
-
-### 3. 🤖 Chat com IA & RAG Híbrido Unificado (Textos + Desenhos)
-A IA não lê todos os arquivos a cada pergunta: o indexador processa notas e diagramas, gera embeddings e consulta os trechos mais relevantes via busca híbrida.
-
-- **O Diferencial — Diagramas Viram Texto**: Arquivos `.excalidraw` contêm coordenadas que não servem diretamente para embeddings. O parser `diagram_to_text` do Biblo traduz caixas, setas e textos em grafos relacionais legíveis por LLMs:
-  ```text
-  Fluxo:
-  Pedido --[Validação]--> Estoque
-  Estoque --[Sucesso]--> Faturamento
-  Anotações: SLA de aprovação: 2 minutos; Gateway primário: Stripe
-  ```
-- **Busca Híbrida RRF (Reciprocal Rank Fusion)**: Combina busca vetorial de cosseno (HNSW) com busca textual clássica Full-Text Search (FTS em português via `to_tsvector`).
-- **Adaptador Agnóstico de LLM**: Interface unificada permitindo alternar entre **Anthropic Claude**, **Google Gemini** ou modelos locais via **Ollama** via variáveis de ambiente.
-- **Rastreabilidade e Citações Clicáveis**: As respostas da IA incluem citações no formato `[caminho/arquivo]` que abrem a nota ou diagrama correspondente com um clique.
+- **Autosave com proteção contra conflito**: grava 1,5 s depois da última edição, com `If-Match`. Se o arquivo mudou
+  fora do Biblo (VS Code, `git pull`), aparece um modal para manter a sua versão, usar a do disco ou salvar uma cópia.
+  Nada é sobrescrito em silêncio.
+- **Disco é a verdade**: o índice do Postgres é descartável e é reconstruído do disco no boot. Mudanças externas chegam
+  pelo watcher (inotify, com polling automático no WSL2 em `/mnt/*`).
+- **Degradação honesta**: sem Ollama, a busca funciona só por texto e o status avisa. Sem gateway de LLM, o copiloto
+  mostra o erro. Nenhuma resposta, modelo ou arquivo é simulado.
 
 ---
 
-## 🛠️ Stack Tecnológica
-
-| Camada | Tecnologia | Motivo da Escolha |
-| :--- | :--- | :--- |
-| **Frontend** | React 19 + Vite + Tailwind CSS | Performance, экоossistema moderno e agilidade |
-| **Canvas** | `@excalidraw/excalidraw` | Licença MIT livre, robustez de exportação e manipulação de formas |
-| **Editor** | CodeMirror 6 | Modularidade, extensibilidade e suporte rápido a Markdown |
-| **Backend** | FastAPI (Python 3.11+) | Async nativo, ecossistema líder em IA/RAG e suporte a SSE para streaming |
-| **Banco / Vetores** | PostgreSQL 17 + `pgvector` | Banco único para metadados relacionais, busca FTS e busca vetorial HNSW |
-| **Embeddings** | Ollama (`nomic-embed-text`) ou Google Gemini | Embeddings locais com zero custo ou via API rápida com 768 dimensões |
-| **LLMs Suportadas** | Anthropic Claude / Google Gemini / Ollama | Flexibilidade configurável via adaptador unificado |
-| **Watcher em Disco** | `watchdog` (Python) | Monitora alterações no filesystem e reindexa automaticamente |
-
----
-
-## 🏗️ Arquitetura do Sistema
+## Arquitetura
 
 ```mermaid
-flowchart TD
-    subgraph Browser[Browser Client - React + Vite :3000]
-        V[Painel 1: Vault Tree & Editor]
-        C[Painel 2: Canvas Excalidraw]
-        A[Painel 3: Chat com Streaming]
-    end
+flowchart LR
+  subgraph Navegador["Navegador · 127.0.0.1:2010"]
+    UI[React 19 · CodeMirror 6 · Excalidraw]
+  end
+  subgraph Web[biblo_web · nginx]
+    STATIC[SPA + CSP estrita]
+  end
+  subgraph API["biblo_api · FastAPI · 127.0.0.1:2011"]
+    FILES[Vault: safe_path, ETag/If-Match, gravação atômica]
+    IDX[Indexador: reconciliação + watchdog]
+    RAG[Busca híbrida RRF + chat SSE]
+  end
+  DISK[(./vault)]
+  PG[(Postgres 17 + pgvector<br/>rede interna)]
+  LLM[LiteLLM do AILab / Ollama]
 
-    subgraph API[Backend - FastAPI :8000]
-        F[Files Service - safe_path]
-        W[Watchdog Indexer]
-        D2T[Parser diagram_to_text]
-        RAG[RRF Hybrid Search Engine]
-        LLM[Adaptador LLM Claude / Gemini / Ollama]
-    end
-
-    subgraph Storage[Persistência & Índices]
-        DISK[("./vault/ (Arquivos .md, .excalidraw, assets/)")]
-        PG[("PostgreSQL 17 + pgvector (:5432)")]
-    end
-
-    V <-->|REST| F
-    C <-->|REST Autosave| F
-    A <-->|SSE Streaming| LLM
-    F <-->|Leitura/Escrita Segura| DISK
-    W -->|Monitora Eventos| DISK
-    W --> D2T
-    D2T -->|Chunks + Embeddings| PG
-    LLM --> RAG
-    RAG -->|Busca Híbrida| PG
+  UI --> STATIC --> API
+  FILES <--> DISK
+  IDX --> DISK
+  IDX --> PG
+  RAG --> PG
+  RAG --> LLM
 ```
+
+| Camada | Tecnologia |
+| :--- | :--- |
+| Frontend | React 19, Vite 8, TypeScript, CodeMirror 6, `@excalidraw/excalidraw` 0.18, markdown-it + DOMPurify, Mermaid 11 (sob demanda) |
+| Backend | FastAPI, asyncpg, watchdog, cliente OpenAI-compatível |
+| Dados | PostgreSQL 17 + pgvector (HNSW) + FTS `portuguese_unaccent` |
+| IA | Chat: LiteLLM do AILab (`ailab_litellm:4000/v1`) ou Ollama `/v1`. Embeddings: Ollama `nomic-embed-text` (768 dim) ou `/v1/embeddings` |
+| Design | Tokens e componentes em [`.docs/design-system/`](.docs/design-system/), protegidos por `npm run ds:check` |
 
 ---
 
-## 🗄️ Modelo de Dados (`db/init.sql`)
+## Como executar
 
-O banco de dados é inicializado com suporte a vetores e busca textual em português:
+Pré-requisitos: Docker com Compose v2 e a rede `ailab_net` (`docker network create ailab_net`).
 
-```sql
--- db/init.sql
-CREATE EXTENSION IF NOT EXISTS vector;
-
--- Registro de documentos do vault
-CREATE TABLE documents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    path TEXT UNIQUE NOT NULL,
-    kind TEXT NOT NULL CHECK (kind IN ('markdown', 'diagram')),
-    title TEXT NOT NULL,
-    content_hash TEXT NOT NULL, -- evita reindexar o que não mudou
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Trechos indexados com embeddings e busca textual FTS
-CREATE TABLE chunks (
-    id BIGSERIAL PRIMARY KEY,
-    document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
-    heading TEXT,
-    text TEXT NOT NULL,
-    embedding vector(768) NOT NULL,
-    tsv tsvector GENERATED ALWAYS AS (to_tsvector('portuguese', text)) STORED
-);
-
--- Índices de alta performance
-CREATE INDEX ON chunks USING hnsw (embedding vector_cosine_ops);
-CREATE INDEX ON chunks USING gin (tsv);
-
--- Relações de links e backlinks bidirecionais
-CREATE TABLE links (
-    source_id UUID REFERENCES documents(id) ON DELETE CASCADE,
-    target TEXT NOT NULL
-);
+```bash
+cp .env.example .env                    # defina DB_PASSWORD (openssl rand -base64 24)
+mkdir -p vault && cp -rn examples/vault/. vault/   # primeira vez: nota de boas-vindas
+docker compose up -d --build
 ```
+
+- Biblo: <http://127.0.0.1:2010>
+- API (docs em `BIBLO_ENV=dev`): <http://127.0.0.1:2011/api/docs>
+- Postgres: só na rede interna. Para inspecionar: `docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d` (porta `127.0.0.1:2012`)
+
+Busca semântica: Ollama no host com `nomic-embed-text`. Enquanto o provedor não responde, a busca é só textual e o
+indexador completa os vetores quando ele volta. Chat: aponte `LLM_BASE_URL`/`LLM_API_KEY` para o LiteLLM do AILab ou para `http://host.docker.internal:11434/v1`.
+
+### Desenvolvimento
+
+```bash
+docker compose up -d biblo_postgres biblo_api     # API em 127.0.0.1:2011
+cd web && npm ci && npm run dev                    # Vite em 127.0.0.1:2010 com proxy /api
+```
+
+### Verificação
+
+| O quê | Comando |
+| :--- | :--- |
+| Backend (ruff + pytest, inclui Postgres real) | `docker compose --profile test run --rm biblo_api_test` |
+| Frontend (design system + typecheck + testes + build) | `cd web && npm run verify` |
+| Só o design system | `cd web && npm run ds:check` |
 
 ---
 
-## 📁 Estrutura de Diretórios Recomendada
+## Segurança
+
+A API não confia em "é localhost". Detalhes em [`.docs/arquitetura.md`](.docs/arquitetura.md).
+
+| Ameaça | Proteção |
+| :--- | :--- |
+| Site malicioso escrevendo no vault (CSRF) | Sessão em cookie `HttpOnly` + `SameSite=Strict`; escrita exige `application/json`; `Origin` e `Sec-Fetch-Site` verificados |
+| DNS rebinding | `TrustedHostMiddleware` (só `localhost`, `127.0.0.1`, `biblo_api`) |
+| Path traversal | `resolve_safe_path`: resolução canônica, sem `..`, sem symlink, sem caminho absoluto, extensões permitidas |
+| XSS por nota, asset ou resposta da IA | Markdown sem HTML bruto + DOMPurify; SVG servido como anexo; CSP `script-src 'self'` |
+| Exfiltração por prompt injection | Contexto RAG fora do system prompt e escapado; imagens externas bloqueadas no preview e removidas do chat |
+| Exposição de rede | Portas só em `127.0.0.1`; Postgres sem porta publicada; API roda com o UID do usuário, não como root |
+| Custo de API | Limite de 10 mensagens/min e teto de contexto (`RAG_MAX_CONTEXT_TOKENS`) |
+
+---
+
+## Estrutura
 
 ```text
 Biblo/
-├── .env.example              # Template de variáveis de ambiente
-├── docker-compose.yml        # Orquestração de todos os serviços em localhost
-├── README.md                 # Documentação oficial
-├── LICENSE                   # Licença MIT
-│
-├── api/                      # Backend FastAPI (Python)
-│   ├── app/
-│   │   ├── main.py           # Entrypoint da API e CORS
-│   │   ├── config.py         # Carregamento de configurações e envs
-│   │   ├── routers/
-│   │   │   ├── files.py      # Operações no vault (com safe_path)
-│   │   │   ├── search.py     # Busca FTS e vetorial
-│   │   │   └── chat.py       # Rota de chat com streaming SSE
-│   │   ├── services/
-│   │   │   ├── parser.py     # diagram_to_text e chunking de markdown
-│   │   │   ├── indexer.py    # Watchdog e sincronização do vault
-│   │   │   └── rag.py        # Busca Híbrida RRF e injeção de contexto
-│   │   └── llm/
-│   │       ├── base.py       # Interface/Protocolo LLM
-│   │       ├── anthropic.py  # Adaptador Claude
-│   │       ├── gemini.py     # Adaptador Google Gemini
-│   │       └── ollama.py     # Adaptador Ollama
-│   ├── requirements.txt
-│   └── Dockerfile
-│
-├── web/                      # Frontend SPA (React + Vite)
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── VaultTree.tsx       # Navegador de arquivos
-│   │   │   ├── MarkdownEditor.tsx  # Editor CodeMirror 6
-│   │   │   ├── Canvas.tsx          # Tela infinita Excalidraw
-│   │   │   └── ChatPanel.tsx       # Chat de IA com citações
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── package.json
-│   └── Dockerfile
-│
-├── db/                       # Inicialização do banco
-│   └── init.sql              # Extensões, tabelas e índices pgvector
-│
-└── vault/                    # A fonte de dados (montada como volume)
-    ├── notas/                # Suas notas .md
-    ├── diagramas/            # Seus diagramas .excalidraw
-    └── assets/               # Imagens e anexos
+├── api/                    FastAPI: app/{routers,services,middlewares}, schema.sql, tests/
+├── web/                    React + Vite: src/{components,lib,hooks,api,styles}
+├── examples/vault/         Semente do vault (o ./vault real é seu e fica fora do Git)
+├── scripts/design-system/  sync, check e pre-commit do design system
+├── .docs/                  arquitetura.md, backend.md e design-system/ (tokens, componentes, marca, proteção)
+├── docker-compose.yml      biblo_postgres, biblo_api, biblo_web (+ perfil test)
+└── vault/                  Seus arquivos (.md, .excalidraw, assets/)
 ```
 
----
+## Licença
 
-## 🚀 Como Executar em Localhost
-
-### 1. Pré-requisitos
-- [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/) instalados.
-- Chave de API da [Anthropic](https://console.anthropic.com/) ou [Google AI Studio](https://aistudio.google.com/) (caso não use Ollama local).
-
-### 2. Configurar Variáveis de Ambiente
-Copie o arquivo de exemplo e preencha suas chaves:
-```bash
-cp .env.example .env
-```
-
-Exemplo de `.env`:
-```ini
-# Banco de Dados
-DB_PASSWORD=biblo_secret_pass
-
-# Seleção de Provedor de IA: anthropic | gemini | ollama
-LLM_PROVIDER=gemini
-LLM_MODEL=gemini-2.0-flash
-
-# Chaves de API (necessária apenas a do provedor ativo)
-ANTHROPIC_API_KEY=sua_chave_claude_aqui
-GEMINI_API_KEY=sua_chave_gemini_aqui
-
-# Provedor de Embeddings: gemini | ollama
-EMBEDDING_PROVIDER=gemini
-OLLAMA_URL=http://ollama:11434
-```
-
-### 3. Iniciar a Aplicação
-Suba a stack completa em modo isolado para desenvolvimento local:
-```bash
-docker compose up -d
-```
-
-*(Se quiser rodar o modelo local via Ollama, execute com o perfil dedicado: `docker compose --profile local-ai up -d`).*
-
-### 4. Acessar o Biblo
-- **Interface Web**: [http://localhost:3000](http://localhost:3000)
-- **API Swagger / Documentação**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **PostgreSQL**: `localhost:5432`
-
----
-
-## 🛡️ Segurança e Proteções do MVP
-
-1. **Proteção contra Path Traversal**:
-   O acesso ao sistema de arquivos é restrito exclusivamente ao diretório `./vault/` validado via `safe_path` (rejeitando requisições com `../` ou caminhos absolutos fora da pasta).
-2. **Prevenção de Prompt Injection**:
-   Trechos de notas e diagramas são injetados no prompt do sistema como **dados brutos citáveis**, instruindo a IA a ignorar comandos executáveis contidos dentro de arquivos.
-3. **Isolamento de Credenciais**:
-   Chaves de API (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`) residem exclusivamente no container de backend (`api`), nunca sendo expostas no código do navegador.
-4. **Resolução de Conflitos de Gravação**:
-   O sistema utiliza `content_hash` para identificar se um arquivo foi modificado externamente antes de sobrescrevê-lo.
-
----
-
-## 🗺️ Roadmap de Evolução
-
-- [x] **Fase 1 (MVP)**:
-  - [x] Arquitetura Local-First com `./vault` em disco.
-  - [x] Canvas infinito Excalidraw integrado.
-  - [x] Editor Markdown com `[[wikilinks]]`.
-  - [x] Parser `diagram_to_text` para indexação semântica de desenhos.
-  - [x] Busca híbrida RRF com pgvector + FTS.
-  - [x] Chat com streaming e adaptador Claude/Gemini.
-- [ ] **Fase 2 (Próximos Passos)**:
-  - [ ] Renderização de diagramas em PNG para RAG multimodal com modelos de visão.
-  - [ ] Graph View visual de conexões entre notas e diagramas.
-  - [ ] Colaboração em tempo real via CRDTs / Yjs.
-  - [ ] Suporte a múltiplos vaults independentes.
-  - [ ] Autenticação e controle de acesso via Keycloak / OIDC.
-
----
-
-## 📄 Licença
-
-Distribuído sob a licença **MIT**. Consulte o arquivo [`LICENSE`](LICENSE) para mais detalhes.
+[MIT](LICENSE).
