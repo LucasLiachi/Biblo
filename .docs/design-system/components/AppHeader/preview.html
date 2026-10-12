@@ -1,0 +1,50 @@
+<!-- @dsCard group="Navegação" height=120 subtitle="Barra superior do estúdio com vault local, status e atalhos" -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../tokens.css">
+  <link rel="stylesheet" href="../bundle.css">
+</head>
+<body>
+  <header class="app-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a class="app-brand" href="#">
+        <span>📚</span>
+        <span>Biblo</span>
+      </a>
+      <span class="vault-indicator">📁 ./vault</span>
+    </div>
+
+    <div class="header-center">
+      <div class="sync-indicator">
+        <span class="sync-dot"></span>
+        <span>Watchdog Ativo · pgvector</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary btn-icon" aria-label="Abrir Paleta de Comandos (Cmd+K)" type="button">
+        <span>🔍</span>
+        <kbd class="kbd">⌘K</kbd>
+      </button>
+
+      <button class="btn btn-ghost btn-icon" aria-label="Alternar Painel do Vault (Cmd+B)" type="button">
+        <span>📁</span>
+        <kbd class="kbd">⌘B</kbd>
+      </button>
+
+      <button class="btn btn-ai btn-icon" aria-label="Alternar Copiloto de IA (Cmd+J)" type="button">
+        <span>✦</span>
+        <kbd class="kbd">⌘J</kbd>
+      </button>
+
+      <button class="btn btn-ghost btn-icon" aria-label="Alternar Tema Escuro/Claro" type="button">
+        <span>🌙</span>
+      </button>
+    </div>
+  </header>
+</body>
+</html>
+

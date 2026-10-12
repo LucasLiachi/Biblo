@@ -1,0 +1,46 @@
+<!-- @dsCard group="Copiloto de IA" height=380 subtitle="Painel de chat com streaming SSE, modelo ativo e citações clicáveis" -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../tokens.css">
+  <link rel="stylesheet" href="../bundle.css">
+</head>
+<body style="display:flex;justify-content:center;padding:16px">
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-title">
+        <span>✦</span>
+        <span>Copiloto de Conhecimento</span>
+      </div>
+      <span class="model-badge">Gemini 2.0 Flash</span>
+    </div>
+
+    <div class="chat-messages" aria-live="polite">
+      <div class="chat-bubble chat-bubble-user">
+        Como o Biblo indexa os diagramas desenhados no Canvas?
+      </div>
+
+      <div class="chat-bubble chat-bubble-ai">
+        O Biblo utiliza o parser <code>diagram_to_text</code>, que converte caixas, setas magnéticas e textos em grafos relacionais legíveis por LLMs.
+        <br><br>
+        Conforme registrado em <a class="citation-badge" href="#"><span>📄</span><span>notas/arquitetura.md</span></a> e ilustrado no fluxo <a class="citation-badge citation-badge-canvas" href="#"><span>🎨</span><span>diagramas/fluxo-pedidos.excalidraw</span></a>, os nós são vetorizados com pgvector e combinados via RRF.
+        <span class="ai-streaming-cursor"></span>
+      </div>
+    </div>
+
+    <div class="chat-input-box">
+      <textarea class="chat-textarea" placeholder="Pergunte aos seus documentos e diagramas... (Enter para enviar)"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:var(--text-xs);color:var(--muted-foreground)">Shift + Enter para quebrar linha</span>
+        <button class="btn btn-primary" type="button" style="padding:4px 10px;font-size:var(--text-xs)">
+          <span>Enviar</span>
+          <span>➔</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,806 @@
+/* ==========================================================================
+   Biblo Design System — Component Bundle CSS
+   Estilos completos dos componentes do Knowledge Studio Local-First
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. Reset e Base do Estúdio
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--background);
+  color: var(--foreground);
+  margin: 0;
+  padding: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco de Acessibilidade Universal */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* --------------------------------------------------------------------------
+   1. Botões e Ações (.btn)
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1.25;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: transparent;
+  color: var(--foreground);
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  transition: background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              color var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: #ffffff;
+  border-color: var(--accent-primary);
+}
+.btn-primary:hover {
+  background: var(--accent-primary-hover);
+  border-color: var(--accent-primary-hover);
+}
+
+.btn-secondary {
+  background: var(--card-bg);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.btn-secondary:hover {
+  background: var(--tree-hover);
+  border-color: var(--input-border);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted-foreground);
+}
+.btn-ghost:hover {
+  background: var(--tree-hover);
+  color: var(--foreground);
+}
+
+.btn-ai {
+  background: var(--accent-ai-bg);
+  color: var(--accent-ai);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+.btn-ai:hover {
+  background: var(--accent-ai);
+  color: #ffffff;
+}
+
+.btn-danger {
+  background: var(--status-danger-bg);
+  color: var(--status-danger);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.btn-danger:hover {
+  background: var(--status-danger);
+  color: #ffffff;
+}
+
+.btn-icon {
+  padding: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: var(--radius-md);
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 5px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--muted-foreground);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   2. AppHeader (Barra Superior do Estúdio)
+   -------------------------------------------------------------------------- */
+.app-header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.vault-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: 3px 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+}
+
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* --------------------------------------------------------------------------
+   3. VaultTree (Explorador de Pastas e Arquivos)
+   -------------------------------------------------------------------------- */
+.vault-tree {
+  width: 100%;
+  max-width: 320px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tree-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-2);
+  color: var(--muted-foreground);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tree-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  color: var(--foreground);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.tree-item:hover {
+  background: var(--tree-hover);
+}
+
+.tree-item.active {
+  background: var(--tree-active);
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+
+.tree-item-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-icon {
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+}
+
+.tree-icon-md { color: #38bdf8; }
+.tree-icon-canvas { color: #06b6d4; }
+.tree-icon-folder { color: #f59e0b; }
+
+.tree-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  background: var(--input-bg);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+}
+
+/* --------------------------------------------------------------------------
+   4. DocumentTabs (Abas do Documento Ativo)
+   -------------------------------------------------------------------------- */
+.document-tabs {
+  height: var(--tab-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  padding: 0 var(--space-2);
+  gap: var(--space-2);
+}
+
+.tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.doc-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: var(--text-base);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.doc-tab:hover {
+  background: var(--tree-hover);
+  color: var(--foreground);
+}
+
+.doc-tab.active {
+  background: var(--workspace-bg);
+  color: var(--foreground);
+  border-color: var(--border);
+  border-bottom-color: var(--workspace-bg);
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.doc-dirty-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--status-warning);
+}
+
+.doc-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+}
+.doc-close-btn:hover {
+  background: var(--tree-hover);
+  color: var(--foreground);
+}
+
+.view-mode-selector {
+  display: inline-flex;
+  align-items: center;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.view-mode-btn {
+  padding: 3px 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.view-mode-btn.active {
+  background: var(--accent-primary);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   5. CanvasToolbar (Barra Flutuante do Excalidraw)
+   -------------------------------------------------------------------------- */
+.canvas-toolbar-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-floating);
+  width: fit-content;
+}
+
+.canvas-tool-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.canvas-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 15px;
+  transition: all var(--transition-fast);
+}
+
+.canvas-tool-btn:hover {
+  background: var(--tree-hover);
+}
+
+.canvas-tool-btn.active {
+  background: var(--accent-canvas-bg);
+  color: var(--accent-canvas);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.canvas-separator {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  margin: 0 var(--space-1);
+}
+
+.canvas-autosave-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+}
+
+/* --------------------------------------------------------------------------
+   6. MarkdownEditor (Editor CodeMirror 6 e Visualizador)
+   -------------------------------------------------------------------------- */
+.markdown-editor-pane {
+  background: var(--workspace-bg);
+  border: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  padding: var(--space-6);
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.editor-frontmatter {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+.editor-content {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: 1.65;
+  color: var(--foreground);
+}
+
+.editor-content h1 {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  margin: 0 0 var(--space-3);
+  color: var(--foreground);
+}
+
+.wikilink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  background: var(--accent-wikilink-bg);
+  color: var(--accent-wikilink);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.wikilink:hover {
+  text-decoration: underline;
+  background: rgba(56, 189, 248, 0.2);
+}
+
+.code-block {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--foreground);
+  overflow-x: auto;
+}
+
+/* --------------------------------------------------------------------------
+   7. ChatPanel (Copiloto de IA & RAG Híbrido)
+   -------------------------------------------------------------------------- */
+.chat-panel {
+  width: 100%;
+  max-width: 420px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.chat-header {
+  padding: var(--space-3) var(--space-4);
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-header-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.model-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--accent-ai-bg);
+  color: var(--accent-ai);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.chat-messages {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.chat-bubble {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  max-width: 90%;
+}
+
+.chat-bubble-user {
+  align-self: flex-end;
+  background: var(--accent-primary);
+  color: #ffffff;
+  border-bottom-right-radius: var(--radius-xs);
+}
+
+.chat-bubble-ai {
+  align-self: flex-start;
+  background: var(--card-bg);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: var(--radius-xs);
+}
+
+.ai-streaming-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 14px;
+  background: var(--accent-ai);
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: cursorPulse 0.9s infinite ease-in-out;
+}
+
+@keyframes cursorPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.chat-input-box {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border);
+  background: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.chat-textarea {
+  width: 100%;
+  min-height: 52px;
+  resize: none;
+  background: var(--input-bg);
+  color: var(--foreground);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.4;
+}
+
+.chat-textarea:focus {
+  outline: none;
+  border-color: var(--accent-ai);
+  box-shadow: 0 0 0 2px var(--accent-ai-bg);
+}
+
+/* --------------------------------------------------------------------------
+   8. CitationBadge (Citações de Fontes RAG e Wikilinks)
+   -------------------------------------------------------------------------- */
+.citation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: 3px 8px;
+  border-radius: var(--radius-md);
+  background: var(--accent-ai-bg);
+  color: var(--accent-ai);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.citation-badge:hover {
+  background: var(--accent-ai);
+  color: #ffffff;
+  border-color: var(--accent-ai);
+  transform: translateY(-1px);
+}
+
+.citation-badge-canvas {
+  background: var(--accent-canvas-bg);
+  color: var(--accent-canvas);
+  border-color: rgba(6, 182, 212, 0.25);
+}
+.citation-badge-canvas:hover {
+  background: var(--accent-canvas);
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   9. CommandPalette (Omnibar de Busca Rápida Cmd+K)
+   -------------------------------------------------------------------------- */
+.command-palette {
+  width: 100%;
+  max-width: 520px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+.command-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.command-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  outline: none;
+}
+
+.command-input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.command-results {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.command-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--foreground);
+  font-size: var(--text-base);
+  transition: background-color var(--transition-fast);
+}
+
+.command-item:hover, .command-item.selected {
+  background: var(--tree-hover);
+  color: var(--accent-primary);
+}
+
+/* --------------------------------------------------------------------------
+   10. SyncIndicator (Status Local-First e Watchdog)
+   -------------------------------------------------------------------------- */
+.sync-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.sync-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.sync-indicator.syncing {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.sync-indicator.syncing .sync-dot {
+  animation: pulseSync 1.2s infinite ease-in-out;
+}
+
+@keyframes pulseSync {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.5; }
+}
+
+/* --------------------------------------------------------------------------
+   11. Breadcrumb (Navegação de Caminho no Vault)
+   -------------------------------------------------------------------------- */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+}
+
+.breadcrumb-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--muted-foreground);
+  text-decoration: none;
+  padding: 2px 4px;
+  border-radius: var(--radius-xs);
+}
+
+.breadcrumb-crumb:hover {
+  background: var(--tree-hover);
+  color: var(--foreground);
+}
+
+.breadcrumb-crumb.current {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.breadcrumb-separator {
+  color: var(--muted);
+  user-select: none;
+}

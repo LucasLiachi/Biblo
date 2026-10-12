@@ -1,0 +1,33 @@
+<!-- @dsCard group="Área de Trabalho" height=320 subtitle="Editor Markdown com YAML Frontmatter, links bidirecionais [[wikilinks]] e código" -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../tokens.css">
+  <link rel="stylesheet" href="../bundle.css">
+</head>
+<body>
+  <div class="markdown-editor-pane">
+    <div class="editor-frontmatter">
+      <div>---</div>
+      <div>title: Arquitetura de RAG Híbrido</div>
+      <div>tags: [rag, postgres, pgvector, llm]</div>
+      <div>updated: 2026-10-12</div>
+      <div>---</div>
+    </div>
+
+    <div class="editor-content">
+      <h1>Arquitetura de RAG Híbrido do Biblo</h1>
+      <p>
+        O motor de busca combina busca vetorial de cosseno HNSW via pgvector com busca textual clássica FTS em português. Veja o fluxo detalhado em <a class="wikilink" href="#">[[fluxo-pedidos.excalidraw]]</a> e as regras de negócio em <a class="wikilink" href="#">[[regras-negocio.md]]</a>.
+      </p>
+
+      <div class="code-block">
+        <code>SELECT id, text, ts_rank(tsv, query) AS rank FROM chunks WHERE tsv @@ query ORDER BY rank DESC;</code>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

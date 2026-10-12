@@ -1,0 +1,41 @@
+<!-- @dsCard group="Área de Trabalho" height=120 subtitle="Abas de arquivos abertos, indicador de autosave e modos Editor/Canvas/Split" -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../tokens.css">
+  <link rel="stylesheet" href="../bundle.css">
+</head>
+<body>
+  <div class="document-tabs">
+    <div class="tabs-group" role="tablist">
+      <div class="doc-tab active" role="tab" aria-selected="true">
+        <span>📄</span>
+        <span>arquitetura.md</span>
+        <span class="doc-dirty-dot" title="Modificações pendentes (debounce 1.5s)"></span>
+        <button class="doc-close-btn" aria-label="Fechar aba arquitetura.md" type="button">×</button>
+      </div>
+
+      <div class="doc-tab" role="tab" aria-selected="false">
+        <span>🎨</span>
+        <span>fluxo-pedidos.excalidraw</span>
+        <button class="doc-close-btn" aria-label="Fechar aba fluxo-pedidos.excalidraw" type="button">×</button>
+      </div>
+
+      <div class="doc-tab" role="tab" aria-selected="false">
+        <span>📄</span>
+        <span>regras-negocio.md</span>
+        <button class="doc-close-btn" aria-label="Fechar aba regras-negocio.md" type="button">×</button>
+      </div>
+    </div>
+
+    <div class="view-mode-selector">
+      <button class="view-mode-btn active" type="button">Editor</button>
+      <button class="view-mode-btn" type="button">Canvas</button>
+      <button class="view-mode-btn" type="button">Split</button>
+    </div>
+  </div>
+</body>
+</html>
+
