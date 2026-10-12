@@ -1,0 +1,19 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-p no:cacheprovider"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["integration: precisa de PostgreSQL + pgvector (BIBLO_TEST_DB=1)"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["B008"]  # Depends/Query/File em defaults é o padrão do FastAPI
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true

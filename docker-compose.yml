@@ -1,0 +1,101 @@
+# Biblo — Knowledge Studio local-first.
+# Web 127.0.0.1:2010 · API 127.0.0.1:2011 · Postgres só na rede interna (debug: docker-compose.debug.yml).
+# Faixa 20xx conforme ../.ai/CONTEXT.md § 2.
+
+name: biblo
+
+networks:
+  biblo_net: {}
+  ailab_net:
+    external: true  # acesso ao LiteLLM/Langfuse do AILab (crie com: docker network create ailab_net)
+
+x-api-env: &api-env
+  BIBLO_ENV: ${BIBLO_ENV:-dev}
+  VAULT_ROOT: /vault
+  DB_USER: ${DB_USER:-biblo}
+  DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (veja .env.example)}
+  DB_NAME: ${DB_NAME:-biblo}
+  DB_HOST: biblo_postgres
+  DB_PORT: 5432
+  LLM_BASE_URL: ${LLM_BASE_URL:-${LITELLM_BASE_URL:-http://ailab_litellm:4000/v1}}
+  LLM_API_KEY: ${LLM_API_KEY:-${LITELLM_API_KEY:-}}
+  EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-ollama}
+  EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-${OLLAMA_BASE_URL:-http://host.docker.internal:11434}}
+  EMBEDDING_MODEL: ${EMBEDDING_MODEL:-nomic-embed-text}
+  EMBEDDING_DIM: ${EMBEDDING_DIM:-768}
+  MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-15}
+  MAX_DOCUMENT_MB: ${MAX_DOCUMENT_MB:-5}
+  MAX_CHUNKS_PER_DOC: ${MAX_CHUNKS_PER_DOC:-100}
+  RAG_MAX_CONTEXT_TOKENS: ${RAG_MAX_CONTEXT_TOKENS:-4000}
+  WATCHER_MODE: ${WATCHER_MODE:-auto}
+
+services:
+  biblo_postgres:
+    container_name: biblo_postgres
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    networks: [biblo_net]
+    environment:
+      POSTGRES_USER: ${DB_USER:-biblo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (veja .env.example)}
+      POSTGRES_DB: ${DB_NAME:-biblo}
+    volumes:
+      - biblo_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-biblo} -d ${DB_NAME:-biblo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  biblo_api:
+    container_name: biblo_api
+    build:
+      context: ./api
+      target: base
+    restart: unless-stopped
+    user: "${BIBLO_UID:-1000}:${BIBLO_GID:-1000}"
+    networks: [biblo_net, ailab_net]
+    ports:
+      - "127.0.0.1:2011:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Ollama rodando no host
+    environment: *api-env
+    volumes:
+      - ./vault:/vault:rw
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -H 'Host: localhost' http://localhost:8000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      biblo_postgres:
+        condition: service_healthy
+
+  biblo_web:
+    container_name: biblo_web
+    build: ./web
+    restart: unless-stopped
+    networks: [biblo_net]
+    ports:
+      - "127.0.0.1:2010:8080"
+    depends_on:
+      biblo_api:
+        condition: service_healthy
+
+  # Verificação: docker compose --profile test run --rm biblo_api_test
+  biblo_api_test:
+    profiles: [test]
+    build:
+      context: ./api
+      target: test
+    networks: [biblo_net]
+    environment:
+      <<: *api-env
+      BIBLO_TEST_DB: "1"
+      EMBEDDING_PROVIDER: none
+    depends_on:
+      biblo_postgres:
+        condition: service_healthy
+
+volumes:
+  biblo_pgdata:

@@ -1,0 +1,6 @@
+# Expõe o Postgres do Biblo só no loopback, para inspeção manual:
+#   docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d
+services:
+  biblo_postgres:
+    ports:
+      - "127.0.0.1:2012:5432"
