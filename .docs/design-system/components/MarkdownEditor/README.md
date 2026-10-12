@@ -1,25 +1,14 @@
-# MarkdownEditor — Biblo Design System
+# MarkdownEditor
 
-O componente **MarkdownEditor** define o visual e os padrões de tipografia para o editor de notas baseado em **CodeMirror 6** do Biblo. Ele sustenta a escrita livre de documentação técnica, pesquisas e notas estilo Obsidian com links bidirecionais.
+`web/src/components/MarkdownEditor.tsx`, `MarkdownPreview.tsx` · classes `.view-mode-selector`, `.view-mode-btn`, `.wikilink` (+ `.cm-host`, `.md-preview`, `.side-panel` em `app.css`)
 
----
-
-## 📝 Recursos Estruturais
-
-1. **Frontmatter YAML (`.editor-frontmatter`)**:
-   - Caixa recolhível no topo com borda de acento à esquerda, guardando metadados (`tags`, `status`, `data`, `autores`).
-2. **Tipografia de Leitura & Edição**:
-   - Cabeçalhos hierárquicos H1, H2, H3 com peso balanceado.
-   - Parágrafos confortáveis com line-height de `1.65`.
-3. **Links Bidirecionais (`.wikilink`)**:
-   - Formato `[[nome-da-nota]]` ou `[[diagrama#seção]]`.
-   - Renderizados como links de cor azul-celeste (`--accent-wikilink`) com preview ao passar o mouse e navegação com um clique.
-4. **Blocos de Código (`.code-block`)**:
-   - Fonte monoespaçada (`JetBrains Mono`), fundo discreto e numeração de linhas.
-
----
-
-## ♿ Acessibilidade
-- Contraste superior a 11:1 entre texto e fundo no Dark Mode.
-- Links `[[wikilinks]]` visualmente distinguíveis por cor e sublinhado no hover.
-
+| Parte | Comportamento |
+| :--- | :--- |
+| Editor | CodeMirror 6: Markdown, números de linha, histórico, busca (`Ctrl/Cmd+F`), quebra de linha |
+| Wikilinks | Destacados; autocomplete ao digitar `[[`; `Ctrl/Cmd+clique` abre; alvo inexistente oferece criar a nota |
+| Barra | Negrito, itálico, título, lista, tarefa, código, wikilink, tabela, fluxograma Mermaid, imagem (envia para `vault/assets`) |
+| Atalhos do editor | `Ctrl/Cmd+B` negrito, `+I` itálico, `+E` código |
+| Modos | Editar, Dividido, Visualizar (a escolha fica salva) |
+| Preview | Markdown sanitizado, checklists clicáveis, Mermaid, imagens só do vault, frontmatter oculto |
+| Painel lateral | Estrutura (títulos), Backlinks e Links de saída (do índice) |
+| Rodapé | Estado da gravação, linha/coluna, palavras |

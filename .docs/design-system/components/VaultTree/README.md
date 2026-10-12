@@ -1,26 +1,18 @@
-# VaultTree — Biblo Design System
+# VaultTree
 
-O componente **VaultTree** representa a árvore hierárquica de arquivos e diretórios do Biblo. Ele reflete de forma 1:1 o conteúdo real do disco em `./vault/`, permitindo navegar entre notas em Markdown (`.md`), diagramas do Excalidraw (`.excalidraw`) e mídias em `assets/`.
+`web/src/components/VaultTree.tsx` · classes `.vault-tree`, `.tree-header`, `.tree-list`, `.tree-item`, `.tree-item.active`, `.tree-icon-md`, `.tree-icon-canvas`, `.tree-icon-folder`
 
----
+Espelha `./vault`: pastas primeiro, ordem alfabética, sem itens ocultos. As pastas abertas ficam salvas, e a pasta do
+documento ativo abre sozinha.
 
-## 📂 Anatomia e Estados Visuais
+| Ação | Como |
+| :--- | :--- |
+| Filtrar | Campo "Filtrar arquivos…" (por nome) |
+| Nova nota / diagrama / pasta | Botões do cabeçalho (raiz), botões da linha da pasta, menu de contexto |
+| Abrir | Clique, `Enter` ou `Espaço` (imagens aparecem, mas não abrem) |
+| Renomear | `F2` ou menu de contexto |
+| Excluir | `Delete` ou menu de contexto, com confirmação (vai para `vault/.lixeira/`) |
+| Mover | Arrastar para uma pasta ou para a área vazia (raiz) |
+| Menu de contexto | Clique direito, tecla `ContextMenu` ou `Shift+F10` |
 
-1. **Pastas Estruturais (`.tree-folder`)**:
-   - Ícone de pasta com estado recolhido/expandido.
-   - Pastas fundamentais do Biblo: `notas/`, `diagramas/`, `assets/`.
-2. **Arquivos Markdown (`.tree-icon-md`)**:
-   - Identificados por ícone azul celeste (`#38bdf8`).
-   - Suporte a contagem de backlinks calculados automaticamente pelo indexador.
-3. **Diagramas Excalidraw (`.tree-icon-canvas`)**:
-   - Identificados por ícone ciano (`#06b6d4`).
-   - Indicador visual de desenho semântico preparado para o parser `diagram_to_text`.
-4. **Estado Ativo (`.tree-item.active`)**:
-   - Destaque sutil com fundo `--tree-active` e texto em `--accent-primary` para o documento aberto no momento.
-
----
-
-## ♿ Acessibilidade
-- Implementado utilizando estrutura semântica `aria-multiselectable="false"` e `role="tree"` / `role="treeitem"`.
-- Navegação completa por teclado com setas Cima/Baixo para focar arquivos e Direita/Esquerda para expandir/recolher diretórios.
-
+Acessibilidade: `role="tree"`, `role="treeitem"` com `aria-expanded`/`aria-selected`, `role="group"` nos filhos.

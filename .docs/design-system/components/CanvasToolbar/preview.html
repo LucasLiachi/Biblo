@@ -1,4 +1,4 @@
-<!-- @dsCard group="Área de Trabalho" height=130 subtitle="Barra flutuante de ferramentas geométricas do Excalidraw e autosave" -->
+<!-- @dsCard group="Área de Trabalho" height=110 subtitle="Badge de autosave exibido ao lado do canvas Excalidraw" -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -7,33 +7,12 @@
   <link rel="stylesheet" href="../../tokens.css">
   <link rel="stylesheet" href="../bundle.css">
 </head>
-<body style="display:flex;justify-content:center;align-items:center;padding:24px">
-  <div class="canvas-toolbar-container" role="toolbar" aria-label="Ferramentas do Canvas">
-    <div class="canvas-tool-group">
-      <button class="canvas-tool-btn" aria-label="Seleção (V)" title="Seleção (V)" type="button">↖</button>
-      <button class="canvas-tool-btn active" aria-label="Retângulo (R)" aria-pressed="true" title="Retângulo (R)" type="button">▭</button>
-      <button class="canvas-tool-btn" aria-label="Losango (D)" title="Losango (D)" type="button">◇</button>
-      <button class="canvas-tool-btn" aria-label="Elipse (O)" title="Elipse (O)" type="button">○</button>
-      <button class="canvas-tool-btn" aria-label="Seta conectora (A)" title="Seta conectora (A)" type="button">➔</button>
-      <button class="canvas-tool-btn" aria-label="Texto livre (T)" title="Texto (T)" type="button">T</button>
-      <button class="canvas-tool-btn" aria-label="Mão para arrastar tela (H)" title="Pan (H)" type="button">✋</button>
-    </div>
-
-    <div class="canvas-separator"></div>
-
-    <div class="canvas-tool-group">
-      <button class="canvas-tool-btn" aria-label="Diminuir zoom" type="button">−</button>
-      <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--muted-foreground);padding:0 4px">100%</span>
-      <button class="canvas-tool-btn" aria-label="Aumentar zoom" type="button">+</button>
-    </div>
-
-    <div class="canvas-separator"></div>
-
-    <div class="canvas-autosave-badge">
-      <span style="color:var(--status-success)">●</span>
-      <span>Salvo há 1.5s</span>
-    </div>
+<body>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <span class="canvas-autosave-badge">Gravado no vault</span>
+    <span class="canvas-autosave-badge">Gravando…</span>
+    <span class="canvas-autosave-badge">Conflito com o disco</span>
+    <span class="canvas-autosave-badge">Falha ao gravar</span>
   </div>
 </body>
 </html>
-

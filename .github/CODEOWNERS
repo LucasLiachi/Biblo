@@ -1,0 +1,5 @@
+# Mudanças no design system, na marca e nas guardas de verificação exigem revisão do dono.
+/.docs/design-system/   @LucasLiachi
+/scripts/design-system/ @LucasLiachi
+/web/src/styles/        @LucasLiachi
+/.github/               @LucasLiachi

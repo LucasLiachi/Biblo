@@ -1,20 +1,18 @@
-# SyncIndicator — Biblo Design System
+# SyncIndicator
 
-O componente **SyncIndicator** expressa o estado em tempo real da filosofia **Local-First** do Biblo. Ele informa de maneira transparente o status da sincronização com o disco (`./vault/`), a atividade do serviço de monitoramento `watchdog` e a integridade da base vetorial PostgreSQL + pgvector.
+`web/src/components/SyncIndicator.tsx` · classes `.sync-indicator`, `.syncing`, `.error`, `.offline` (as duas últimas em `app.css`)
 
----
+O estado vem de `GET /api/index/status` (consultado a cada 4 s) e da gravação do documento ativo, nesta ordem de
+prioridade:
 
-## 🟢 Estados do Indicador
+| Texto | Classe | Quando |
+| :--- | :--- | :--- |
+| Conflito com o disco | `.error` | O arquivo mudou fora do Biblo durante a edição |
+| Falha ao gravar | `.error` | A última gravação falhou |
+| Salvando no vault… | `.syncing` | Alteração pendente ou gravando |
+| Índice offline | `.offline` | Banco desconectado |
+| Indexando… | `.syncing` | Indexador ocupado ou com fila |
+| Sincronizado · N docs · só texto | `.syncing` | Há trechos sem embedding (provedor indisponível) |
+| Sincronizado · N docs | — | Disco e índice em dia |
 
-| Estado | Classe | Visual | Significado |
-| :--- | :--- | :--- | :--- |
-| **Sincronizado** | `.sync-indicator` | Verde esmeralda com ponto fixo | Todos os arquivos em disco foram indexados no PostgreSQL. |
-| **Indexando / Salvando** | `.sync-indicator.syncing` | Âmbar com ponto pulsante animado | O Watchdog detectou alterações ou o debounce de 1.5s está gravando em disco. |
-| **Erro de Disco** | `.sync-indicator.error` | Vermelho | Conflito de hash externo ou falha de escrita no filesystem. |
-
----
-
-## ♿ Acessibilidade
-- Elemento com `role="status"` e `aria-live="polite"`.
-- O estado não depende apenas de cor: texto descritivo explicita o evento atual.
-
+O `title` traz o detalhe (erro, fila, modo do watcher). Acessibilidade: `role="status"`, `aria-live="polite"`.

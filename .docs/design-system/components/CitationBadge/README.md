@@ -1,26 +1,13 @@
-# CitationBadge — Biblo Design System
+# CitationBadge
 
-O componente **CitationBadge** é a peça fundamental de rastreabilidade do Biblo. Ele representa as fontes citadas pelo copiloto de IA durante a resposta do RAG Híbrido, garantindo que o usuário saiba exatamente de qual arquivo em disco (`.md` ou `.excalidraw`) aquela informação foi extraída.
+`web/src/components/CitationBadge.tsx` · classes `.citation-badge`, `.citation-badge-canvas`
 
----
+Botão para uma fonte usada pelo copiloto.
 
-## 🏷️ Variantes
-
-| Classe | Tipo de Documento | Visual |
+| Tipo | Rótulo | Clique |
 | :--- | :--- | :--- |
-| `.citation-badge` | Nota Markdown (`.md`) | Ícone `📄`, fundo violeta sutil, texto em `--accent-ai` |
-| `.citation-badge-canvas` | Diagrama Excalidraw (`.excalidraw`) | Ícone `🎨`, fundo ciano sutil, texto em `--accent-canvas` |
+| Nota (`.citation-badge`) | `caminho.md:linha` | Abre a nota e posiciona o cursor na linha |
+| Diagrama (`.citation-badge-canvas`) | `caminho.excalidraw` | Abre o diagrama |
 
----
-
-## ⚡ Comportamento Interativo
-- **Clique**: Abre imediatamente o arquivo correspondente no Painel 2 (Área de Trabalho Central).
-- **Hover**: Elevação suave de 1px e inversão para a cor cheia do acento.
-- **Tooltip**: Exibe o trecho exato (*chunk*) do documento que serviu de contexto para a IA.
-
----
-
-## ♿ Acessibilidade
-- Elemento interativo com `role="link"` ou `<a>`.
-- O caminho do arquivo é renderizado em fonte monoespaçada legível com contraste conforme WCAG 2.1 AA.
-
+O `title` mostra a seção e o trecho. Texto em `--accent-ai-fg` / `--accent-canvas-fg`; no hover, preenchimento cheio
+com `--on-accent`.

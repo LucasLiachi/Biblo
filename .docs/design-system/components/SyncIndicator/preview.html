@@ -1,4 +1,4 @@
-<!-- @dsCard group="Status" height=140 subtitle="Indicador de sincronização em disco, Watchdog e integridade local-first" -->
+<!-- @dsCard group="Status" height=140 subtitle="Estado do disco e do índice" -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -10,17 +10,17 @@
 <body style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding:24px">
   <div class="sync-indicator" role="status">
     <span class="sync-dot"></span>
-    <span>Sincronizado com ./vault</span>
+    <span>Sincronizado · 5 docs</span>
   </div>
 
   <div class="sync-indicator syncing" role="status">
     <span class="sync-dot"></span>
-    <span>Indexando Watchdog (pgvector)...</span>
+    <span>Indexando…</span>
   </div>
 
   <div class="sync-indicator" style="background:var(--status-danger-bg);color:var(--status-danger);border-color:rgba(239,68,68,0.25)" role="status">
     <span class="sync-dot"></span>
-    <span>Conflito externo detectado</span>
+    <span>Conflito com o disco</span>
   </div>
 </body>
 </html>

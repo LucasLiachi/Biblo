@@ -1,27 +1,17 @@
-# CanvasToolbar — Biblo Design System
+# Canvas (Excalidraw)
 
-O componente **CanvasToolbar** é a barra flutuante de ferramentas de desenho do `@excalidraw/excalidraw` integrada ao Biblo. Ela fica suspensa sobre a tela infinita, garantindo acesso instantâneo a formas geométricas, conexões lógicas e feedback de autosave local.
+`web/src/components/DiagramCanvas.tsx` · classes `.canvas-autosave-badge`, `.canvas-notice`, `.canvas-host` (`web/src/styles/app.css`)
 
----
+O canvas é o `@excalidraw/excalidraw` 0.18, com a barra de ferramentas e os atalhos dele, carregado sob demanda.
 
-## 🎨 Ferramentas e Funcionalidades
+| Recurso | Comportamento |
+| :--- | :--- |
+| Gravação | `serializeAsJSON(..., "local")` 250 ms depois da mudança de cena e autosave 1,5 s depois. Cursor, zoom e seleção não gravam |
+| Badge | "Gravado no vault", "Gravando…", "Conflito com o disco", "Falha ao gravar" |
+| Tema e idioma | Segue o tema do Biblo; `langCode="pt-BR"` |
+| Menu principal | Salvar como imagem, Exportar, Buscar, Limpar canvas, Fundo do canvas, Ajuda |
+| Fontes | Servidas de `/excalidraw-assets/` |
+| Mermaid → diagrama | Menu de ferramentas extras do Excalidraw |
+| Arquivo fora do formato nativo | Convertido na abertura (`web/src/lib/excalidraw.ts`) com aviso; só é regravado ao editar |
 
-1. **Ferramentas de Desenho**:
-   - **Seleção (`V`)**: Manipular e agrupar elementos.
-   - **Retângulo (`R`)**: Caixas de módulos e serviços.
-   - **Losango (`D`)**: Pontos de decisão lógica em fluxos.
-   - **Elipse (`O`)**: Eventos de início e término.
-   - **Seta Magnética (`A`)**: Conectores relacionais entre caixas (essenciais para o parser `diagram_to_text`).
-   - **Texto Livre (`T`)**: Anotações e legendas técnicas.
-   - **Pan / Mão (`H`)**: Deslocamento livre pela tela infinita.
-2. **Controle de Zoom e Centralização**:
-   - Zoom in, Zoom out e Reset (100%).
-3. **Indicador de Autosave Silencioso**:
-   - Badge com status de gravação direta no arquivo JSON `.excalidraw` dentro de `./vault/diagramas/`.
-
----
-
-## ♿ Acessibilidade
-- Cada botão de ferramenta possui tecla de atalho de letra única equivalente ao padrão Excalidraw.
-- `aria-pressed="true"` no botão da ferramenta atualmente ativa.
-
+Setas ligadas a formas viram relações no índice (`Origem --[rótulo]--> Destino`).

@@ -1,18 +1,8 @@
-# Breadcrumb — Biblo Design System
+# Breadcrumb
 
-O componente **Breadcrumb** mapeia a localização exata do documento aberto no painel central em relação à raiz do repositório de conhecimento local (`./vault/`).
+`web/src/components/Breadcrumb.tsx` · classes `.breadcrumb`, `.breadcrumb-crumb`, `.breadcrumb-crumb.current`, `.breadcrumb-separator`
 
----
+Mostra o caminho do documento aberto: `vault / pasta / arquivo.ext`, em monoespaçada, na barra do documento. Os
+segmentos não são clicáveis. O último usa `.current` e `aria-current="page"`.
 
-## 🧭 Formato e Convenção
-
-- **Raiz do Vault**: Sempre inicia com `vault` em monoespaçado.
-- **Diretórios Intermediários**: Pastas clicáveis (`notas`, `diagramas`, subdiretórios) que abrem ou filtram o `VaultTree`.
-- **Documento Ativo**: Nome do arquivo com extensão (`.md` ou `.excalidraw`), em negrito e `aria-current="page"`.
-- **Separador**: Barra discreta `/` em cor `--muted`.
-
----
-
-## ♿ Acessibilidade
-- Implementado utilizando `<nav aria-label="Caminho do documento">` e lista semântica `<ol>`.
-- O item final é marcado com `aria-current="page"` para informar leitores de tela sobre a localização atual.
+Acessibilidade: `<nav aria-label="Caminho no vault">`; separadores com `aria-hidden`.

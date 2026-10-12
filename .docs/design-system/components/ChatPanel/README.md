@@ -1,26 +1,14 @@
-# ChatPanel — Biblo Design System
+# ChatPanel (copiloto)
 
-O componente **ChatPanel** é o copiloto conversacional do Biblo. Ele conecta o usuário à IA e ao motor de **RAG Híbrido Unificado**, permitindo fazer perguntas contextuais que cruzam o conteúdo de notas em Markdown e os grafos relacionais extraídos dos diagramas do Excalidraw.
+`web/src/components/ChatPanel.tsx` · classes `.chat-panel`, `.chat-header`, `.chat-messages`, `.chat-bubble-user`, `.chat-bubble-ai`, `.ai-streaming-cursor`, `.chat-input-box`, `.chat-textarea`
 
----
+| Elemento | Comportamento |
+| :--- | :--- |
+| Cabeçalho | Seletor com os modelos de `GET /api/models` (o escolhido fica salvo); limpar conversa; fechar |
+| Sem gateway | Aviso com o erro da API e "Tentar de novo"; campo de mensagem desabilitado |
+| Mensagens | Usuário à direita (`--accent-primary`); IA em Markdown sanitizado, sem imagens, com cursor de streaming |
+| Fontes | `CitationBadge` para cada trecho enviado ao modelo; `[caminho.md]` no texto vira link |
+| Avisos | "Nenhum trecho do vault foi encontrado…", "Busca só textual: embeddings indisponíveis", erros do modelo |
+| Entrada | `Enter` envia, `Shift+Enter` quebra linha; "Parar" cancela o stream |
 
-## 🤖 Elementos e Interações
-
-1. **Header do Chat & Seletor de Modelo**:
-   - Badge com o provedor/modelo ativo (Claude 3.5 Sonnet, Gemini 2.0 Flash ou Ollama Local).
-2. **Bolhas de Mensagem (`.chat-bubble`)**:
-   - Usuário (`.chat-bubble-user`): alinhado à direita, fundo acento primário.
-   - IA (`.chat-bubble-ai`): alinhado à esquerda, fundo card, contorno com `--border`.
-3. **Cursor de Streaming SSE (`.ai-streaming-cursor`)**:
-   - Cursor pulsante animado em violeta (`--accent-ai`), indicando que novos tokens estão sendo recebidos via Server-Sent Events.
-4. **Citações RAG Clicáveis**:
-   - Cada trecho citado renderiza uma pílula interativa conectada ao documento em disco.
-5. **Área de Entrada com Auto-Resize**:
-   - Textarea com redimensionamento de altura e envio via tecla `Enter` (`Shift+Enter` para nova linha).
-
----
-
-## ♿ Acessibilidade
-- Região de mensagens configurada com `aria-live="polite"` para anúncio acessível de streaming.
-- Botão "Parar Resposta" acessível via teclado para cancelar o streaming a qualquer momento.
-
+O histórico enviado é limitado às últimas 20 mensagens. Acessibilidade: região de mensagens com `aria-live="polite"`.

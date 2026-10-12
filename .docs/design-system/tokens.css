@@ -3,9 +3,9 @@
    Knowledge Studio Local-First (Canvas + Markdown + RAG Híbrido)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Fontes auto-hospedadas gerenciadas via pacotes locais @fontsource/inter e @fontsource/jetbrains-mono (Vite local-first) */
 
-:root {
+:root, :root[data-theme="dark"] {
   /* Cores — Tema Escuro (Padrão Primário do Estúdio Biblo) */
   --background: #090d16;
   --panel-bg: #0f1422;
@@ -17,24 +17,41 @@
   --border: #1e293b;
   --input-bg: #121827;
   --input-border: #2a364f;
+  --canvas-bg: #090d16;
+  --on-accent: #ffffff;
+  --overlay-bg: rgba(3, 6, 12, 0.6);
 
-  /* Acentos Semânticos Funcionais */
-  --accent-primary: #6366f1;
+  /* Marca (coruja Biblo) — iguais nos dois temas; ver brand/README.md */
+  --brand-ink: #16213b;
+  --brand-amber: #f2a33a;
+  --brand-paper: #f3f4f8;
+
+  /* Acentos Semânticos Funcionais — Preenchimento e Superfícies */
+  --accent-primary: #5b5ef0;
   --accent-primary-hover: #4f46e5;
-  --accent-ai: #8b5cf6;
+  --accent-ai: #7c4ef0;
   --accent-ai-bg: rgba(139, 92, 246, 0.12);
   --accent-canvas: #06b6d4;
   --accent-canvas-bg: rgba(6, 182, 212, 0.12);
   --accent-wikilink: #38bdf8;
   --accent-wikilink-bg: rgba(56, 189, 248, 0.1);
 
+  /* Acentos de Texto/Foreground (Conforme WCAG 2.1 AA >= 4.5:1) */
+  --accent-primary-fg: #818cf8;
+  --accent-ai-fg: #a78bfa;
+  --accent-canvas-fg: #22d3ee;
+  --accent-wikilink-fg: #38bdf8;
+
   /* Status e Integridade em Disco (Local-First) */
   --status-success: #10b981;
   --status-success-bg: rgba(16, 185, 129, 0.12);
+  --status-success-fg: #34d399;
   --status-warning: #f59e0b;
   --status-warning-bg: rgba(245, 158, 11, 0.12);
-  --status-danger: #ef4444;
+  --status-warning-fg: #fbbf24;
+  --status-danger: #dc2626;
   --status-danger-bg: rgba(239, 68, 68, 0.12);
+  --status-danger-fg: #f87171;
 
   /* Interações e Acessibilidade */
   --tree-hover: rgba(255, 255, 255, 0.05);
@@ -111,7 +128,7 @@
 }
 
 /* Tema Claro (Opcional, com Contraste Rigoroso WCAG 2.1 AA) */
-.light, html[data-theme="light"] {
+.light, :root[data-theme="light"] {
   --background: #f8fafc;
   --panel-bg: #f1f5f9;
   --workspace-bg: #ffffff;
@@ -122,7 +139,11 @@
   --border: #e2e8f0;
   --input-bg: #ffffff;
   --input-border: #cbd5e1;
+  --canvas-bg: #f1f5f9;
+  --on-accent: #ffffff;
+  --overlay-bg: rgba(15, 23, 42, 0.35);
 
+  /* Acentos Semânticos — Preenchimento e Superfícies */
   --accent-primary: #4f46e5;
   --accent-primary-hover: #4338ca;
   --accent-ai: #7c3aed;
@@ -132,12 +153,22 @@
   --accent-wikilink: #0284c7;
   --accent-wikilink-bg: rgba(2, 132, 199, 0.08);
 
+  /* Acentos de Texto/Foreground (Conforme WCAG 2.1 AA >= 4.5:1) */
+  --accent-primary-fg: #4338ca;
+  --accent-ai-fg: #6d28d9;
+  --accent-canvas-fg: #0e7490;
+  --accent-wikilink-fg: #0369a1;
+
+  /* Status e Integridade em Disco (Local-First) */
   --status-success: #059669;
   --status-success-bg: rgba(5, 150, 105, 0.08);
+  --status-success-fg: #047857;
   --status-warning: #d97706;
   --status-warning-bg: rgba(217, 119, 6, 0.08);
+  --status-warning-fg: #b45309;
   --status-danger: #dc2626;
   --status-danger-bg: rgba(220, 38, 38, 0.08);
+  --status-danger-fg: #b91c1c;
 
   --tree-hover: rgba(0, 0, 0, 0.04);
   --tree-active: rgba(79, 70, 229, 0.12);
