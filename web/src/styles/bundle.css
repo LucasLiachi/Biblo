@@ -1,0 +1,683 @@
+/* GERADO por scripts/design-system/sync.mjs a partir de .docs/design-system/components/bundle.css. NÃO EDITE: altere a fonte e rode "npm run ds:sync". */
+/* ==========================================================================
+   Biblo Design System — Component Bundle CSS
+   Estilos completos dos componentes do Knowledge Studio Local-First
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. Reset e Base do Estúdio
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--background);
+  color: var(--foreground);
+  margin: 0;
+  padding: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco de Acessibilidade Universal */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* --------------------------------------------------------------------------
+   1. Botões e Ações (.btn)
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1.25;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: transparent;
+  color: var(--foreground);
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  transition: background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              color var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: var(--on-accent);
+  border-color: var(--accent-primary);
+}
+.btn-primary:hover {
+  background: var(--accent-primary-hover);
+  border-color: var(--accent-primary-hover);
+}
+
+.btn-secondary {
+  background: var(--card-bg);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.btn-secondary:hover {
+  background: var(--tree-hover);
+  border-color: var(--input-border);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted-foreground);
+}
+.btn-ghost:hover {
+  background: var(--tree-hover);
+  color: var(--foreground);
+}
+
+.btn-ai {
+  background: var(--accent-ai-bg);
+  color: var(--accent-ai-fg);
+  border-color: color-mix(in srgb, var(--accent-ai) 30%, transparent);
+}
+.btn-ai:hover {
+  background: var(--accent-ai);
+  color: var(--on-accent);
+}
+
+.btn-danger {
+  background: var(--status-danger-bg);
+  color: var(--status-danger-fg);
+  border-color: color-mix(in srgb, var(--status-danger) 30%, transparent);
+}
+.btn-danger:hover {
+  background: var(--status-danger);
+  color: var(--on-accent);
+}
+
+.btn-icon {
+  padding: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: var(--radius-md);
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 5px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--muted-foreground);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-sm);
+}
+
+/* --------------------------------------------------------------------------
+   2. AppHeader (Barra Superior do Estúdio)
+   -------------------------------------------------------------------------- */
+.app-header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.vault-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: 3px 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+}
+
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* --------------------------------------------------------------------------
+   3. VaultTree (Explorador de Pastas e Arquivos)
+   -------------------------------------------------------------------------- */
+.vault-tree {
+  width: 100%;
+  max-width: 320px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tree-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-2);
+  color: var(--muted-foreground);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tree-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  color: var(--foreground);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.tree-item:hover {
+  background: var(--tree-hover);
+}
+
+.tree-item.active {
+  background: var(--tree-active);
+  color: var(--accent-primary-fg);
+  font-weight: 500;
+}
+
+.tree-item-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-icon {
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+}
+
+.tree-icon-md { color: var(--accent-wikilink-fg); }
+.tree-icon-canvas { color: var(--accent-canvas-fg); }
+.tree-icon-folder { color: var(--status-warning-fg); }
+
+/* --------------------------------------------------------------------------
+   4. DocumentTabs (Abas do Documento Ativo)
+   -------------------------------------------------------------------------- */
+.document-tabs {
+  height: var(--tab-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  padding: 0 var(--space-2);
+  gap: var(--space-2);
+}
+
+.tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.doc-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: var(--text-base);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.doc-tab:hover {
+  background: var(--tree-hover);
+  color: var(--foreground);
+}
+
+.doc-tab.active {
+  background: var(--workspace-bg);
+  color: var(--foreground);
+  border-color: var(--border);
+  border-bottom-color: var(--workspace-bg);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+}
+
+.doc-dirty-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--status-warning);
+}
+
+.doc-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+}
+.doc-close-btn:hover {
+  background: var(--tree-hover);
+  color: var(--foreground);
+}
+
+/* --------------------------------------------------------------------------
+   5. MarkdownEditor e Canvas (seletor de modo, wikilinks, badge de autosave)
+   -------------------------------------------------------------------------- */
+.view-mode-selector {
+  display: inline-flex;
+  align-items: center;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.view-mode-btn {
+  padding: 3px 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.view-mode-btn.active {
+  background: var(--accent-primary);
+  color: var(--on-accent);
+  font-weight: 500;
+}
+
+.canvas-autosave-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+}
+
+.wikilink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  background: var(--accent-wikilink-bg);
+  color: var(--accent-wikilink-fg);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.wikilink:hover {
+  text-decoration: underline;
+  background: color-mix(in srgb, var(--accent-wikilink) 20%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   6. ChatPanel (Copiloto de IA & RAG Híbrido)
+   -------------------------------------------------------------------------- */
+.chat-panel {
+  width: 100%;
+  max-width: 420px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.chat-header {
+  padding: var(--space-3) var(--space-4);
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-header-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.chat-messages {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.chat-bubble {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  max-width: 90%;
+}
+
+.chat-bubble-user {
+  align-self: flex-end;
+  background: var(--accent-primary);
+  color: var(--on-accent);
+  border-bottom-right-radius: var(--radius-xs);
+}
+
+.chat-bubble-ai {
+  align-self: flex-start;
+  background: var(--card-bg);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: var(--radius-xs);
+}
+
+.ai-streaming-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 14px;
+  background: var(--accent-ai);
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: cursorPulse 0.9s infinite ease-in-out;
+}
+
+@keyframes cursorPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.chat-input-box {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border);
+  background: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.chat-textarea {
+  width: 100%;
+  min-height: 52px;
+  resize: none;
+  background: var(--input-bg);
+  color: var(--foreground);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.4;
+}
+
+.chat-textarea:focus {
+  outline: none;
+  border-color: var(--accent-ai);
+  box-shadow: 0 0 0 2px var(--accent-ai-bg);
+}
+
+/* --------------------------------------------------------------------------
+   7. CitationBadge (Citações de Fontes RAG e Wikilinks)
+   -------------------------------------------------------------------------- */
+.citation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: 3px 8px;
+  border-radius: var(--radius-md);
+  background: var(--accent-ai-bg);
+  color: var(--accent-ai-fg);
+  border: 1px solid color-mix(in srgb, var(--accent-ai) 25%, transparent);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.citation-badge:hover {
+  background: var(--accent-ai);
+  color: var(--on-accent);
+  border-color: var(--accent-ai);
+  transform: translateY(-1px);
+}
+
+.citation-badge-canvas {
+  background: var(--accent-canvas-bg);
+  color: var(--accent-canvas-fg);
+  border-color: color-mix(in srgb, var(--accent-canvas) 25%, transparent);
+}
+.citation-badge-canvas:hover {
+  background: var(--accent-canvas);
+  color: var(--on-accent);
+}
+
+/* --------------------------------------------------------------------------
+   8. CommandPalette (Omnibar de Busca Rápida Ctrl/Cmd+K)
+   -------------------------------------------------------------------------- */
+.command-palette {
+  width: 100%;
+  max-width: 520px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+.command-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.command-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  outline: none;
+}
+
+.command-input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.command-results {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.command-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--foreground);
+  font-size: var(--text-base);
+  transition: background-color var(--transition-fast);
+}
+
+.command-item:hover, .command-item.selected {
+  background: var(--tree-hover);
+  color: var(--accent-primary-fg);
+}
+
+/* --------------------------------------------------------------------------
+   9. SyncIndicator (Status Local-First e Watchdog)
+   -------------------------------------------------------------------------- */
+.sync-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--status-success-bg);
+  color: var(--status-success-fg);
+  border: 1px solid color-mix(in srgb, var(--status-success) 25%, transparent);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.sync-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.sync-indicator.syncing {
+  background: var(--status-warning-bg);
+  color: var(--status-warning-fg);
+  border-color: color-mix(in srgb, var(--status-warning) 25%, transparent);
+}
+
+.sync-indicator.syncing .sync-dot {
+  animation: pulseSync 1.2s infinite ease-in-out;
+}
+
+@keyframes pulseSync {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.5; }
+}
+
+/* --------------------------------------------------------------------------
+   10. Breadcrumb (Navegação de Caminho no Vault)
+   -------------------------------------------------------------------------- */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+}
+
+.breadcrumb-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--muted-foreground);
+  text-decoration: none;
+  padding: 2px 4px;
+  border-radius: var(--radius-xs);
+}
+
+.breadcrumb-crumb:hover {
+  background: var(--tree-hover);
+  color: var(--foreground);
+}
+
+.breadcrumb-crumb.current {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.breadcrumb-separator {
+  color: var(--muted);
+  user-select: none;
+}

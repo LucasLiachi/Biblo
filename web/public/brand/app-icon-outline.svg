@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Biblo">
+  <title>Biblo</title>
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="14" stroke="#16213B" stroke-width="1.5" fill="#FFFFFF"/>
+  <g transform="translate(8.96 7.88) scale(0.72)">
+  <path d="M13 9 L25.5 17.5 C29.5 16.2 34.5 16.2 38.5 17.5 L51 9 L51 37 C51 49 42.5 57.5 32 58 C21.5 57.5 13 49 13 37 Z" fill="none" stroke="#16213B" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="24.5" cy="31" r="6" fill="none" stroke="#16213B" stroke-width="2.5"/>
+    <circle cx="39.5" cy="31" r="6" fill="none" stroke="#16213B" stroke-width="2.5"/>
+    <circle cx="24.5" cy="31" r="2.6" fill="#16213B"/>
+    <circle cx="39.5" cy="31" r="2.6" fill="#16213B"/>
+    <path d="M29 40 L35 40 L32 45.5 Z" fill="none" stroke="#16213B" stroke-width="2.2" stroke-linejoin="round"/>
+  </g>
+</svg>
