@@ -18,14 +18,14 @@ class Recorder(Indexer):
 def test_reads_do_not_feed_the_queue() -> None:
     recorder = Recorder()
     handler = _Handler(recorder)
-    handler.dispatch(FileOpenedEvent("/vault/a.md"))
-    handler.dispatch(FileClosedNoWriteEvent("/vault/a.md"))
+    handler.dispatch(FileOpenedEvent("/bibliotecas/a.md"))
+    handler.dispatch(FileClosedNoWriteEvent("/bibliotecas/a.md"))
     assert recorder.seen == []
 
 
 def test_writes_and_moves_are_queued() -> None:
     recorder = Recorder()
     handler = _Handler(recorder)
-    handler.dispatch(FileModifiedEvent("/vault/a.md"))
-    handler.dispatch(FileMovedEvent("/vault/a.md", "/vault/b.md"))
-    assert recorder.seen == ["/vault/a.md", "/vault/a.md", "/vault/b.md"]
+    handler.dispatch(FileModifiedEvent("/bibliotecas/a.md"))
+    handler.dispatch(FileMovedEvent("/bibliotecas/a.md", "/bibliotecas/b.md"))
+    assert recorder.seen == ["/bibliotecas/a.md", "/bibliotecas/a.md", "/bibliotecas/b.md"]

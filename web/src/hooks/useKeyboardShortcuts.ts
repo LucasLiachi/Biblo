@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 export interface Shortcuts {
   onCloseTab: () => void;
-  onToggleVault: () => void;
+  onToggleLibraries: () => void;
   onToggleChat: () => void;
   onFocusMode: () => void;
   onCommandPalette: () => void;
@@ -26,7 +26,7 @@ export function useKeyboardShortcuts(shortcuts: Shortcuts) {
         fn();
       };
       if (e.altKey && !mod && !e.shiftKey && e.code === "KeyW") run(ref.current.onCloseTab);
-      else if (mod && e.shiftKey && !e.altKey && e.code === "KeyB") run(ref.current.onToggleVault);
+      else if (mod && e.shiftKey && !e.altKey && e.code === "KeyB") run(ref.current.onToggleLibraries);
       else if (mod && e.shiftKey && !e.altKey && e.code === "KeyL") run(ref.current.onToggleChat);
       else if (mod && e.shiftKey && !e.altKey && e.code === "KeyF") run(ref.current.onFocusMode);
       else if (mod && !e.shiftKey && !e.altKey && e.code === "KeyK") run(ref.current.onCommandPalette);

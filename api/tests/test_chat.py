@@ -36,14 +36,19 @@ def fakes(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     captured: dict[str, Any] = {}
     chat_module._recent_requests.clear()
 
-    async def fake_search(conn: Any, query: str, embedder: Any, limit: int = 8) -> tuple[list[SearchHit], str]:
+    async def fake_search(
+        conn: Any, query: str, embedder: Any, limit: int = 8, library: str | None = None
+    ) -> tuple[list[SearchHit], str]:
         captured["query"] = query
-        return [SearchHit(1, "notas/arch.md", "Arch", "markdown", "Intro", 1, 4, "O vault é a fonte da verdade.", 0.03)], "text"
+        captured["library"] = library
+        return [
+            SearchHit(1, "acervo/notas/arch.md", "Arch", "markdown", "Intro", 1, 4, "O disco é a fonte da verdade.", 0.03)
+        ], "text"
 
     async def fake_stream(model: str, messages: list[dict[str, str]], metadata: Any = None) -> AsyncIterator[str]:
         captured["model"] = model
         captured["messages"] = messages
-        for token in ["O vault ", "manda. ", "[notas/arch.md]"]:
+        for token in ["O disco ", "manda. ", "[acervo/notas/arch.md]"]:
             yield token
 
     monkeypatch.setattr(chat_module, "pool", lambda: FakePool())
@@ -59,16 +64,21 @@ async def client() -> AsyncIterator[httpx.AsyncClient]:
 
 
 async def test_stream_sends_citations_tokens_and_done(client: httpx.AsyncClient, fakes: dict[str, Any]) -> None:
-    payload = {"model": "claude-teste", "messages": [{"role": "user", "content": "Qual a fonte da verdade?"}]}
+    payload = {
+        "model": "claude-teste",
+        "library": "acervo",
+        "messages": [{"role": "user", "content": "Qual a fonte da verdade?"}],
+    }
     res = await client.post("/api/chat/stream", json=payload, headers=HEADERS)
     assert res.status_code == 200
     events = _parse_sse(res.text)
     assert events[0][0] == "citations"
-    assert events[0][1]["citations"][0]["path"] == "notas/arch.md"
-    assert "".join(e[1]["t"] for e in events if e[0] == "token") == "O vault manda. [notas/arch.md]"
+    assert events[0][1]["citations"][0]["path"] == "acervo/notas/arch.md"
+    assert "".join(e[1]["t"] for e in events if e[0] == "token") == "O disco manda. [acervo/notas/arch.md]"
     assert events[-1][0] == "done"
     assert fakes["model"] == "claude-teste"
     assert fakes["query"] == "Qual a fonte da verdade?"
+    assert fakes["library"] == "acervo"
 
 
 async def test_llm_failure_is_reported_not_faked(client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:

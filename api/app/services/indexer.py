@@ -1,4 +1,4 @@
-"""Indexador: mantém o índice do Postgres fiel ao vault em disco.
+"""Indexador: mantém o índice do Postgres fiel às bibliotecas em disco.
 
 - No boot, reconcilia disco x banco (novos, alterados e órfãos).
 - Em execução, recebe eventos do watchdog (inotify ou polling) e da própria API.
@@ -21,8 +21,8 @@ from watchdog.observers.polling import PollingObserver
 
 from app.config import settings
 from app.services.embeddings import EmbeddingsClient, EmbeddingsUnavailable
+from app.services.library_fs import DOCUMENT_EXTENSIONS, compute_sha256, is_hidden
 from app.services.parser import normalize_link_target, parse_document
-from app.services.vault_fs import DOCUMENT_EXTENSIONS, compute_sha256, is_hidden
 
 DEBOUNCE_SECONDS = 0.8
 EMBED_BATCH = 16
@@ -46,9 +46,9 @@ class IndexerState:
         return dict(self.__dict__)
 
 
-def detect_needs_polling(vault_root: Path) -> bool:
+def detect_needs_polling(libraries_root: Path) -> bool:
     """inotify não atravessa drvfs/9p (WSL2 em /mnt/c, alguns bind mounts do Docker Desktop)."""
-    resolved = str(vault_root.resolve())
+    resolved = str(libraries_root.resolve())
     if "microsoft" in platform.release().lower() and resolved.startswith("/mnt/"):
         return True
     try:
@@ -84,8 +84,8 @@ class _Handler(FileSystemEventHandler):
 
 
 class Indexer:
-    def __init__(self, vault_root: Path, pool: asyncpg.Pool | None, embedder: EmbeddingsClient) -> None:
-        self.vault_root = vault_root.resolve()
+    def __init__(self, libraries_root: Path, pool: asyncpg.Pool | None, embedder: EmbeddingsClient) -> None:
+        self.libraries_root = libraries_root.resolve()
         self.pool = pool
         self.embedder = embedder
         self.state = IndexerState()
@@ -121,9 +121,9 @@ class Indexer:
     def _start_observer(self) -> None:
         mode = settings.WATCHER_MODE
         if mode == "auto":
-            mode = "polling" if detect_needs_polling(self.vault_root) else "inotify"
+            mode = "polling" if detect_needs_polling(self.libraries_root) else "inotify"
         observer: BaseObserver = PollingObserver(timeout=2.0) if mode == "polling" else Observer()
-        observer.schedule(_Handler(self), str(self.vault_root), recursive=True)
+        observer.schedule(_Handler(self), str(self.libraries_root), recursive=True)
         observer.daemon = True
         observer.start()
         self._observer = observer
@@ -161,7 +161,7 @@ class Indexer:
 
     def _rel(self, path: Path) -> str | None:
         try:
-            rel = path.resolve().relative_to(self.vault_root).as_posix()
+            rel = path.resolve().relative_to(self.libraries_root).as_posix()
         except ValueError:
             return None
         return None if is_hidden(rel) else rel
@@ -177,6 +177,8 @@ class Indexer:
             return
         if path.suffix.lower() not in DOCUMENT_EXTENSIONS and path.exists():
             return
+        if "/" not in rel and path.is_file():
+            return  # documentos só existem dentro de uma biblioteca
         if not path.exists():
             await self._delete_prefix(rel)
             return
@@ -249,9 +251,9 @@ class Indexer:
         assert self.pool is not None
         self.state.status = "indexing"
         on_disk: dict[str, Path] = {}
-        for item in self.vault_root.rglob("*"):
+        for item in self.libraries_root.rglob("*"):
             rel = self._rel(item)
-            if rel and item.is_file() and not item.is_symlink() and item.suffix.lower() in DOCUMENT_EXTENSIONS:
+            if rel and "/" in rel and item.is_file() and not item.is_symlink() and item.suffix.lower() in DOCUMENT_EXTENSIONS:
                 on_disk[rel] = item
         async with self.pool.acquire() as conn:
             known = {r["path"] for r in await conn.fetch("SELECT path FROM documents")}
@@ -285,6 +287,24 @@ class Indexer:
                     "UPDATE index_meta SET embedding_provider = $1, embedding_model = $2, embedding_dim = $3, updated_at = now()",
                     self.embedder.provider, self.embedder.model, self.embedder.dim,
                 )
+
+    async def embeddings_reconfigured(self) -> None:
+        """Chamado quando a configuração de embeddings muda: invalida vetores de outro modelo e recalcula todos."""
+        self.state.embedding_model = self.embedder.model_id if self.embedder.enabled else "desativado"
+        self.state.embeddings_error = None
+        if self.pool is None:
+            return
+        await self.check_embedding_space()
+        await self.refresh_counts()
+        if self.embedder.enabled:
+            self._tasks.append(asyncio.create_task(self._backfill_all()))
+
+    async def _backfill_all(self) -> None:
+        try:
+            while self.state.chunks_without_embedding and await self.backfill_embeddings():
+                pass
+        except EmbeddingsUnavailable as exc:
+            self.state.embeddings_error = str(exc)
 
     async def _backfill_loop(self) -> None:
         """Completa vetores faltantes quando o provedor de embeddings fica disponível."""

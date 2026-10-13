@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     BIBLO_ENV: str = "dev"
-    VAULT_ROOT: Path = Path("/vault")
+    LIBRARIES_ROOT: Path = Path("/bibliotecas")  # cada subpasta é uma biblioteca
 
     # Banco: guarda só índice, vetores e metadados (descartável, reconstruído do disco).
     DB_USER: str = "biblo"

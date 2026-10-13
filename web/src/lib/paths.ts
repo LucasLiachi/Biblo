@@ -1,4 +1,4 @@
-import type { DocumentKind, TreeNode, VaultEntry } from "../types";
+import type { DocumentKind, TreeNode, LibraryEntry } from "../types";
 
 export function kindOf(path: string): DocumentKind | null {
   const lower = path.toLowerCase();
@@ -7,25 +7,34 @@ export function kindOf(path: string): DocumentKind | null {
   return null;
 }
 
+/** Biblioteca que contém o caminho (primeiro segmento). */
+export const libraryOf = (path: string) => path.split("/")[0] ?? "";
+/** Caminho relativo à biblioteca ("acervo/notas/x.md" -> "notas/x.md"). */
+export const insideLibrary = (path: string) => path.slice(path.indexOf("/") + 1);
+
 export const baseName = (path: string) => path.split("/").pop() ?? path;
 export const parentOf = (path: string) => (path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "");
 export const joinPath = (folder: string, name: string) => (folder ? `${folder}/${name}` : name);
 export const stripExtension = (name: string) => name.replace(/\.(md|markdown|excalidraw)$/i, "");
 
 /** Lista plana da API -> árvore com pastas antes de arquivos, em ordem alfabética. */
-export function buildTree(entries: VaultEntry[]): TreeNode[] {
+export function buildTree(entries: LibraryEntry[]): TreeNode[] {
   const root: TreeNode[] = [];
   const folders = new Map<string, TreeNode>();
   const sorted = [...entries].sort((a, b) => a.path.split("/").length - b.path.split("/").length);
   for (const entry of sorted) {
     const node: TreeNode = { ...entry, children: [] };
-    if (entry.type === "directory") folders.set(entry.path, node);
+    if (entry.type !== "file") folders.set(entry.path, node);
     const parent = folders.get(parentOf(entry.path));
     (parent ? parent.children : root).push(node);
   }
   const sortNodes = (nodes: TreeNode[]) => {
     nodes.sort((a, b) =>
-      a.type === b.type ? a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }) : a.type === "directory" ? -1 : 1,
+      (a.type === "file") === (b.type === "file")
+        ? a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" })
+        : a.type === "file"
+          ? 1
+          : -1,
     );
     nodes.forEach((n) => sortNodes(n.children));
   };
@@ -33,12 +42,12 @@ export function buildTree(entries: VaultEntry[]): TreeNode[] {
   return root;
 }
 
-/** Nome válido para arquivo ou pasta do vault (sem barras, sem nomes ocultos). */
+/** Nome válido para biblioteca, pasta ou arquivo (sem barras, sem nomes ocultos). */
 export function validateName(name: string): string | null {
   const trimmed = name.trim();
   if (!trimmed) return "Informe um nome.";
   if (/[\\/:*?"<>|]/.test(trimmed)) return "Use um nome sem / \\ : * ? \" < > |";
-  if (trimmed.startsWith(".")) return "Nomes começando com ponto ficam ocultos no vault.";
+  if (trimmed.startsWith(".")) return "Nomes começando com ponto ficam ocultos.";
   return null;
 }
 

@@ -7,7 +7,7 @@ O canvas é o `@excalidraw/excalidraw` 0.18, com a barra de ferramentas e os ata
 | Recurso | Comportamento |
 | :--- | :--- |
 | Gravação | `serializeAsJSON(..., "local")` 250 ms depois da mudança de cena e autosave 1,5 s depois. Cursor, zoom e seleção não gravam |
-| Badge | "Gravado no vault", "Gravando…", "Conflito com o disco", "Falha ao gravar" |
+| Badge | "Gravado em disco", "Gravando…", "Conflito com o disco", "Falha ao gravar" |
 | Tema e idioma | Segue o tema do Biblo; `langCode="pt-BR"` |
 | Menu principal | Salvar como imagem, Exportar, Buscar, Limpar canvas, Fundo do canvas, Ajuda |
 | Fontes | Servidas de `/excalidraw-assets/` |

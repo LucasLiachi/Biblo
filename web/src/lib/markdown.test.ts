@@ -16,8 +16,8 @@ describe("renderMarkdown", () => {
     expect(html).toContain("imagem externa bloqueada");
   });
 
-  it("serve imagens do vault pela API", () => {
-    expect(renderMarkdown("![logo](assets/logo.png)")).toContain('src="/api/assets?path=assets%2Flogo.png"');
+  it("serve imagens da biblioteca pela API", () => {
+    expect(renderMarkdown("![logo](assets/logo.png)", "acervo")).toContain('src="/api/assets?path=acervo%2Fassets%2Flogo.png"');
   });
 
   it("transforma [[wikilinks]] em links com alias e seção", () => {
@@ -47,7 +47,7 @@ describe("renderMarkdown", () => {
 });
 
 describe("renderChatMarkdown", () => {
-  it("remove qualquer imagem da resposta do copiloto", () => {
+  it("remove qualquer imagem da resposta do chat", () => {
     expect(renderChatMarkdown("![x](assets/a.png)")).not.toContain("<img");
   });
 });

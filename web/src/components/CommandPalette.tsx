@@ -1,15 +1,16 @@
-import { FilePlus2, FileText, Moon, PenTool, Search, Workflow } from "lucide-react";
+import { FilePlus2, FileText, LibraryBig, Moon, PenTool, Search, Workflow } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 
 import { api } from "../api/client";
-import type { Citation, VaultEntry } from "../types";
+import type { Citation, LibraryEntry } from "../types";
 
 interface CommandPaletteProps {
-  entries: VaultEntry[];
+  entries: LibraryEntry[];
   onClose: () => void;
   onOpenPath: (path: string, line?: number) => void;
   onNewNote: () => void;
   onNewDiagram: () => void;
+  onNewLibrary: () => void;
   onToggleTheme: () => void;
 }
 
@@ -23,14 +24,16 @@ interface Item {
   run: () => void;
 }
 
-export function CommandPalette({ entries, onClose, onOpenPath, onNewNote, onNewDiagram, onToggleTheme }: CommandPaletteProps) {
+export function CommandPalette({ entries, onClose, onOpenPath, onNewNote, onNewDiagram, onNewLibrary, onToggleTheme }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
   const [hits, setHits] = useState<Citation[]>([]);
   const [searchNote, setSearchNote] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => inputRef.current?.focus(), []);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   // Busca híbrida no conteúdo (debounce de 250 ms).
   useEffect(() => {
@@ -81,12 +84,15 @@ export function CommandPalette({ entries, onClose, onOpenPath, onNewNote, onNewD
     const commands: Item[] = [
       { id: "cmd:note", group: "Comandos", label: "Nova nota", icon: <FilePlus2 size={14} aria-hidden="true" />, run: close(onNewNote) },
       { id: "cmd:diagram", group: "Comandos", label: "Novo diagrama", icon: <Workflow size={14} aria-hidden="true" />, run: close(onNewDiagram) },
+      { id: "cmd:library", group: "Comandos", label: "Nova biblioteca", icon: <LibraryBig size={14} aria-hidden="true" />, run: close(onNewLibrary) },
       { id: "cmd:theme", group: "Comandos", label: "Alternar tema claro/escuro", icon: <Moon size={14} aria-hidden="true" />, run: close(onToggleTheme) },
     ].filter((c) => !q || c.label.toLowerCase().includes(q));
     return [...files, ...content, ...commands];
-  }, [entries, hits, query, onClose, onOpenPath, onNewNote, onNewDiagram, onToggleTheme]);
+  }, [entries, hits, query, onClose, onOpenPath, onNewNote, onNewDiagram, onNewLibrary, onToggleTheme]);
 
-  useEffect(() => setSelected(0), [query]);
+  useEffect(() => {
+    setSelected(0);
+  }, [query]);
 
   return (
     <div className="overlay command" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>

@@ -74,15 +74,16 @@ function createRenderer(): MarkdownIt {
     return fence(tokens, idx, options, env, self);
   };
 
-  // Imagens só do vault: caminhos relativos viram /api/assets; URLs externas são bloqueadas.
+  // Imagens só da biblioteca: caminhos relativos viram /api/assets; URLs externas são bloqueadas.
   const image = md.renderer.rules.image!;
-  md.renderer.rules.image = (tokens, idx, options, env, self) => {
+  md.renderer.rules.image = (tokens, idx, options, env: { library?: string }, self) => {
     const token = tokens[idx];
     const src = token.attrGet("src") ?? "";
     if (/^[a-z]+:/i.test(src) || src.startsWith("//")) {
       return `<span class="blocked-image" title="Imagem externa bloqueada">[imagem externa bloqueada]</span>`;
     }
-    token.attrSet("src", api.assetUrl(src.replace(/^\.?\//, "")));
+    const relative = src.replace(/^\.?\//, "");
+    token.attrSet("src", api.assetUrl(env.library ? `${env.library}/${relative}` : relative));
     return image(tokens, idx, options, env, self);
   };
 
@@ -113,11 +114,12 @@ const PURIFY = {
   FORBID_TAGS: ["style", "form", "input", "iframe"],
 };
 
-/** Markdown do vault -> HTML seguro (sem HTML bruto, sem scripts, sem imagens externas). */
-export function renderMarkdown(source: string): string {
+/** Markdown da biblioteca -> HTML seguro (sem HTML bruto, sem scripts, sem imagens externas).
+ *  Imagens relativas (`assets/x.png`) são resolvidas dentro de `library`. */
+export function renderMarkdown(source: string, library?: string): string {
   const frontmatter = /^---\n[\s\S]*?\n(---|\.\.\.)\n/.exec(source)?.[0] ?? "";
   const lineOffset = frontmatter ? frontmatter.split("\n").length - 1 : 0;
-  return DOMPurify.sanitize(renderer.render(source.slice(frontmatter.length), { lineOffset }), PURIFY);
+  return DOMPurify.sanitize(renderer.render(source.slice(frontmatter.length), { lineOffset, library }), PURIFY);
 }
 
 /** Alterna "- [ ]" / "- [x]" na linha (base 0) indicada pelo preview. */
@@ -128,7 +130,7 @@ export function toggleTask(source: string, line: number): string {
   return lines.join("\n");
 }
 
-/** Resposta do copiloto: mesmo pipeline, sem imagens nenhuma. */
+/** Resposta do chat: mesmo pipeline, sem imagens nenhuma. */
 export function renderChatMarkdown(source: string): string {
   return DOMPurify.sanitize(renderer.render(source), { ...PURIFY, FORBID_TAGS: [...PURIFY.FORBID_TAGS, "img"] });
 }

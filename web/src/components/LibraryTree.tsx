@@ -1,33 +1,48 @@
-import { ChevronDown, ChevronRight, FilePlus2, FileText, Folder, FolderOpen, FolderPlus, Image, PenTool, Workflow } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  FilePlus2,
+  FileText,
+  Folder,
+  FolderOpen,
+  FolderPlus,
+  Image,
+  Library,
+  LibraryBig,
+  PenTool,
+  Workflow,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type JSX, type MouseEvent } from "react";
 
-import { buildTree, parentOf } from "../lib/vault";
-import type { TreeNode, VaultEntry } from "../types";
+import { buildTree, parentOf } from "../lib/paths";
+import type { LibraryEntry, TreeNode } from "../types";
 
-export interface VaultActions {
+export interface LibraryActions {
   open: (path: string) => void;
+  newLibrary: () => void;
   newNote: (folder: string) => void;
   newDiagram: (folder: string) => void;
   newFolder: (folder: string) => void;
-  rename: (entry: VaultEntry) => void;
+  rename: (entry: LibraryEntry) => void;
   move: (source: string, targetFolder: string) => void;
-  remove: (entry: VaultEntry) => void;
+  remove: (entry: LibraryEntry) => void;
 }
 
-interface VaultTreeProps {
-  entries: VaultEntry[];
+interface LibraryTreeProps {
+  entries: LibraryEntry[];
   activePath?: string;
   error?: string | null;
-  actions: VaultActions;
+  actions: LibraryActions;
 }
 
 interface MenuState {
   x: number;
   y: number;
-  entry: VaultEntry | null; // null = raiz do vault
+  entry: LibraryEntry | null; // null = área das bibliotecas (só permite criar biblioteca)
 }
 
-const EXPANDED_KEY = "biblo.vault.expanded";
+const EXPANDED_KEY = "biblo.libraries.expanded";
+const DRAG_TYPE = "application/x-biblo-path";
 
 function loadExpanded(): Set<string> {
   try {
@@ -37,13 +52,13 @@ function loadExpanded(): Set<string> {
   }
 }
 
-function FileIcon({ node }: { node: VaultEntry }) {
+function FileIcon({ node }: { node: LibraryEntry }) {
   if (node.kind === "diagram") return <PenTool size={14} className="tree-icon tree-icon-canvas" aria-hidden="true" />;
   if (node.kind === "asset") return <Image size={14} className="tree-icon" aria-hidden="true" />;
   return <FileText size={14} className="tree-icon tree-icon-md" aria-hidden="true" />;
 }
 
-export function VaultTree({ entries, activePath, error, actions }: VaultTreeProps) {
+export function LibraryTree({ entries, activePath, error, actions }: LibraryTreeProps) {
   const [expanded, setExpanded] = useState<Set<string>>(loadExpanded);
   const [filter, setFilter] = useState("");
   const [menu, setMenu] = useState<MenuState | null>(null);
@@ -60,7 +75,7 @@ export function VaultTree({ entries, activePath, error, actions }: VaultTreeProp
     }
   }, [expanded]);
 
-  // Revela o arquivo ativo abrindo as pastas ancestrais.
+  // Revela o arquivo ativo abrindo biblioteca e pastas ancestrais.
   useEffect(() => {
     if (!activePath) return;
     const parents: string[] = [];
@@ -95,21 +110,18 @@ export function VaultTree({ entries, activePath, error, actions }: VaultTreeProp
 
   const query = filter.trim().toLowerCase();
   const matches = (node: TreeNode): boolean =>
-    !query || node.name.toLowerCase().includes(query) || node.children.some(matches);
+    !query || node.type === "library" || node.name.toLowerCase().includes(query) || node.children.some(matches);
 
-  const openMenu = (e: MouseEvent, entry: VaultEntry | null) => {
+  const openMenu = (e: MouseEvent, entry: LibraryEntry | null) => {
     e.preventDefault();
     e.stopPropagation();
-    setMenu({ x: Math.min(e.clientX, window.innerWidth - 220), y: Math.min(e.clientY, window.innerHeight - 260), entry });
+    setMenu({ x: Math.min(e.clientX, window.innerWidth - 220), y: Math.min(e.clientY, window.innerHeight - 220), entry });
   };
 
-  const onDragStart = (e: DragEvent, path: string) => {
-    e.dataTransfer.setData("application/x-biblo-path", path);
-    e.dataTransfer.effectAllowed = "move";
-  };
+  // Itens dentro de bibliotecas são arrastáveis; bibliotecas são só destino.
   const dropProps = (folder: string) => ({
     onDragOver: (e: DragEvent) => {
-      if (!e.dataTransfer.types.includes("application/x-biblo-path")) return;
+      if (!e.dataTransfer.types.includes(DRAG_TYPE)) return;
       e.preventDefault();
       e.stopPropagation();
       setDropTarget(folder);
@@ -119,7 +131,7 @@ export function VaultTree({ entries, activePath, error, actions }: VaultTreeProp
       e.preventDefault();
       e.stopPropagation();
       setDropTarget(null);
-      const source = e.dataTransfer.getData("application/x-biblo-path");
+      const source = e.dataTransfer.getData(DRAG_TYPE);
       if (source && source !== folder && parentOf(source) !== folder && !folder.startsWith(`${source}/`)) {
         actions.move(source, folder);
       }
@@ -128,26 +140,31 @@ export function VaultTree({ entries, activePath, error, actions }: VaultTreeProp
 
   const renderNode = (node: TreeNode, depth: number): JSX.Element | null => {
     if (!matches(node)) return null;
-    const isDir = node.type === "directory";
-    const isOpen = isDir && (expanded.has(node.path) || !!query);
+    const isLibrary = node.type === "library";
+    const isFolder = node.type !== "file";
+    const isOpen = isFolder && (expanded.has(node.path) || !!query);
     const style = { "--depth": depth } as CSSProperties;
+    const FolderIcon = isOpen ? FolderOpen : Folder;
     return (
-      <li key={node.path} role="treeitem" aria-expanded={isDir ? isOpen : undefined} aria-selected={node.path === activePath}>
+      <li key={node.path} role="treeitem" aria-expanded={isFolder ? isOpen : undefined} aria-selected={node.path === activePath}>
         <div
-          className={`tree-item tree-row ${node.path === activePath ? "active" : ""} ${dropTarget === node.path ? "drop-target" : ""}`}
+          className={`tree-item tree-row ${isLibrary ? "tree-library" : ""} ${node.path === activePath ? "active" : ""} ${dropTarget === node.path ? "drop-target" : ""}`}
           style={style}
-          draggable
+          draggable={!isLibrary}
           tabIndex={0}
-          onDragStart={(e) => onDragStart(e, node.path)}
-          {...(isDir ? dropProps(node.path) : {})}
-          onClick={() => (isDir ? toggle(node.path) : node.kind !== "asset" && actions.open(node.path))}
+          onDragStart={(e) => {
+            e.dataTransfer.setData(DRAG_TYPE, node.path);
+            e.dataTransfer.effectAllowed = "move";
+          }}
+          {...(isFolder ? dropProps(node.path) : {})}
+          onClick={() => (isFolder ? toggle(node.path) : node.kind !== "asset" && actions.open(node.path))}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              if (isDir) toggle(node.path);
+              if (isFolder) toggle(node.path);
               else if (node.kind !== "asset") actions.open(node.path);
-            } else if (e.key === "F2") actions.rename(node);
-            else if (e.key === "Delete") actions.remove(node);
+            } else if (e.key === "F2" && !isLibrary) actions.rename(node);
+            else if (e.key === "Delete" && !isLibrary) actions.remove(node);
             else if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) {
               const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
               setMenu({ x: rect.left + 24, y: rect.bottom, entry: node });
@@ -157,21 +174,17 @@ export function VaultTree({ entries, activePath, error, actions }: VaultTreeProp
           title={node.path}
         >
           <span className="tree-item-label">
-            {isDir ? (
-              <>
-                {isOpen ? <ChevronDown size={12} aria-hidden="true" /> : <ChevronRight size={12} aria-hidden="true" />}
-                {isOpen ? (
-                  <FolderOpen size={14} className="tree-icon tree-icon-folder" aria-hidden="true" />
-                ) : (
-                  <Folder size={14} className="tree-icon tree-icon-folder" aria-hidden="true" />
-                )}
-              </>
+            {isFolder && (isOpen ? <ChevronDown size={12} aria-hidden="true" /> : <ChevronRight size={12} aria-hidden="true" />)}
+            {isLibrary ? (
+              <Library size={14} className="tree-icon tree-icon-library" aria-hidden="true" />
+            ) : isFolder ? (
+              <FolderIcon size={14} className="tree-icon tree-icon-folder" aria-hidden="true" />
             ) : (
               <FileIcon node={node} />
             )}
             <span>{node.name}</span>
           </span>
-          {isDir && (
+          {isFolder && (
             <span className="tree-actions">
               <button type="button" className="btn btn-ghost btn-icon" title="Nova nota aqui" aria-label={`Nova nota em ${node.name}`}
                 onClick={(e) => { e.stopPropagation(); actions.newNote(node.path); }}>
@@ -184,73 +197,80 @@ export function VaultTree({ entries, activePath, error, actions }: VaultTreeProp
             </span>
           )}
         </div>
-        {isDir && isOpen && node.children.length > 0 && (
+        {isFolder && isOpen && node.children.length > 0 && (
           <ul className="tree-list" role="group">
             {node.children.map((child) => renderNode(child, depth + 1))}
           </ul>
+        )}
+        {isLibrary && isOpen && node.children.length === 0 && !query && (
+          <p className="chat-meta tree-empty" style={{ "--depth": depth + 1 } as CSSProperties}>Biblioteca vazia.</p>
         )}
       </li>
     );
   };
 
-  const menuFolder = menu?.entry ? (menu.entry.type === "directory" ? menu.entry.path : parentOf(menu.entry.path)) : "";
+  const menuEntry = menu?.entry ?? null;
+  const menuFolder = menuEntry ? (menuEntry.type === "file" ? parentOf(menuEntry.path) : menuEntry.path) : "";
 
   return (
-    <nav className="vault-tree" aria-label="Arquivos do vault">
+    <nav className="library-tree" aria-label="Bibliotecas">
       <div className="tree-header">
-        <span>Vault</span>
-        <span className="header-actions">
-          <button type="button" className="btn btn-ghost btn-icon" title="Nova nota" aria-label="Nova nota na raiz" onClick={() => actions.newNote("")}>
-            <FilePlus2 size={14} />
-          </button>
-          <button type="button" className="btn btn-ghost btn-icon" title="Novo diagrama" aria-label="Novo diagrama na raiz" onClick={() => actions.newDiagram("")}>
-            <Workflow size={14} />
-          </button>
-          <button type="button" className="btn btn-ghost btn-icon" title="Nova pasta" aria-label="Nova pasta na raiz" onClick={() => actions.newFolder("")}>
-            <FolderPlus size={14} />
-          </button>
-        </span>
+        <span>Bibliotecas</span>
+        <button type="button" className="btn btn-ghost btn-icon" title="Nova biblioteca" aria-label="Nova biblioteca" onClick={actions.newLibrary}>
+          <LibraryBig size={15} />
+        </button>
       </div>
       <input
         className="tree-filter"
         type="search"
         placeholder="Filtrar arquivos…"
-        aria-label="Filtrar arquivos do vault"
+        aria-label="Filtrar arquivos das bibliotecas"
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
       />
       {error && <div className="tree-error" role="alert">{error}</div>}
-      <div
-        className={`tree-scroll tree-root-drop ${dropTarget === "" ? "drop-target" : ""}`}
-        onContextMenu={(e) => openMenu(e, null)}
-        {...dropProps("")}
-      >
-        <ul className="tree-list" role="tree" aria-label="Vault">
+      <div className="tree-scroll" onContextMenu={(e) => openMenu(e, null)}>
+        <ul className="tree-list" role="tree" aria-label="Bibliotecas">
           {tree.map((node) => renderNode(node, 0))}
         </ul>
-        {tree.length === 0 && !error && <p className="chat-meta tree-empty">Vault vazio. Crie a primeira nota.</p>}
+        {tree.length === 0 && !error && (
+          <div className="tree-onboarding">
+            <p className="chat-meta">Crie uma biblioteca para reunir notas e diagramas de um mesmo assunto.</p>
+            <button type="button" className="btn btn-primary" onClick={actions.newLibrary}>
+              <LibraryBig size={14} /> Nova biblioteca
+            </button>
+          </div>
+        )}
       </div>
 
       {menu && (
         <div ref={menuRef} className="context-menu" role="menu" style={{ left: menu.x, top: menu.y }}>
-          <button type="button" role="menuitem" onClick={() => { setMenu(null); actions.newNote(menuFolder); }}>
-            <FilePlus2 size={14} /> Nova nota
-          </button>
-          <button type="button" role="menuitem" onClick={() => { setMenu(null); actions.newDiagram(menuFolder); }}>
-            <Workflow size={14} /> Novo diagrama
-          </button>
-          <button type="button" role="menuitem" onClick={() => { setMenu(null); actions.newFolder(menuFolder); }}>
-            <FolderPlus size={14} /> Nova pasta
-          </button>
-          {menu.entry && (
+          {!menuEntry ? (
+            <button type="button" role="menuitem" onClick={() => { setMenu(null); actions.newLibrary(); }}>
+              <LibraryBig size={14} /> Nova biblioteca
+            </button>
+          ) : (
             <>
-              <hr />
-              <button type="button" role="menuitem" onClick={() => { const e = menu.entry!; setMenu(null); actions.rename(e); }}>
-                Renomear <span className="kbd">F2</span>
+              <button type="button" role="menuitem" onClick={() => { setMenu(null); actions.newNote(menuFolder); }}>
+                <FilePlus2 size={14} /> Nova nota
               </button>
-              <button type="button" role="menuitem" className="danger" onClick={() => { const e = menu.entry!; setMenu(null); actions.remove(e); }}>
-                Excluir <span className="kbd">Del</span>
+              <button type="button" role="menuitem" onClick={() => { setMenu(null); actions.newDiagram(menuFolder); }}>
+                <Workflow size={14} /> Novo diagrama
               </button>
+              <button type="button" role="menuitem" onClick={() => { setMenu(null); actions.newFolder(menuFolder); }}>
+                <FolderPlus size={14} /> Nova pasta
+              </button>
+              {menuEntry.type !== "library" && (
+                <>
+                  <hr />
+                  <button type="button" role="menuitem" onClick={() => { setMenu(null); actions.rename(menuEntry); }}>
+                    Renomear <span className="kbd">F2</span>
+                  </button>
+                  <button type="button" role="menuitem" className="danger" onClick={() => { setMenu(null); actions.remove(menuEntry); }}>
+                    Excluir <span className="kbd">Del</span>
+                  </button>
+                </>
+              )}
             </>
           )}
         </div>

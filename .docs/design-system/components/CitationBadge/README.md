@@ -2,7 +2,7 @@
 
 `web/src/components/CitationBadge.tsx` · classes `.citation-badge`, `.citation-badge-canvas`
 
-Botão para uma fonte usada pelo copiloto.
+Botão para uma fonte usada pelo Biblo numa resposta.
 
 | Tipo | Rótulo | Clique |
 | :--- | :--- | :--- |

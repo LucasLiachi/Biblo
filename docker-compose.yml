@@ -11,7 +11,7 @@ networks:
 
 x-api-env: &api-env
   BIBLO_ENV: ${BIBLO_ENV:-dev}
-  VAULT_ROOT: /vault
+  LIBRARIES_ROOT: /bibliotecas
   DB_USER: ${DB_USER:-biblo}
   DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (veja .env.example)}
   DB_NAME: ${DB_NAME:-biblo}
@@ -61,7 +61,7 @@ services:
       - "host.docker.internal:host-gateway"  # Ollama rodando no host
     environment: *api-env
     volumes:
-      - ./vault:/vault:rw
+      - ./bibliotecas:/bibliotecas:rw
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS -H 'Host: localhost' http://localhost:8000/api/health || exit 1"]
       interval: 10s

@@ -12,4 +12,4 @@ Antes de agir, leia `../AGENTS.md` (raiz do AILab) e siga a ordem de leitura del
 - Documentação: `.docs/arquitetura.md`, `.docs/backend.md`, `.docs/design-system/`.
 - Verificação: `docker compose --profile test run --rm biblo_api_test` e `cd web && npm run verify`.
 - Design system: edite só `.docs/design-system/` e rode `npm run ds:sync`; as cópias em `web/` são geradas.
-- `./vault` é dado do usuário: testes nunca escrevem nele.
+- `./bibliotecas` é dado do usuário (uma pasta mestra por biblioteca): testes nunca escrevem nele.

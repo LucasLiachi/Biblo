@@ -1,6 +1,6 @@
 """Pool do PostgreSQL e schema do índice.
 
-O banco é descartável: guarda só o índice derivado do vault. Quando a versão do
+O banco é descartável: guarda só o índice derivado das bibliotecas. Quando a versão do
 schema muda, as tabelas são recriadas e o indexador reconstrói tudo a partir do disco.
 """
 

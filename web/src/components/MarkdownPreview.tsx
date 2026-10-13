@@ -5,14 +5,15 @@ import { renderMermaid } from "../lib/mermaid";
 
 interface MarkdownPreviewProps {
   source: string;
+  library: string;
   theme: "dark" | "light";
   onOpenLink: (target: string) => void;
   onToggleTask?: (line: number) => void;
 }
 
-export function MarkdownPreview({ source, theme, onOpenLink, onToggleTask }: MarkdownPreviewProps) {
+export function MarkdownPreview({ source, library, theme, onOpenLink, onToggleTask }: MarkdownPreviewProps) {
   const ref = useRef<HTMLElement>(null);
-  const html = useMemo(() => renderMarkdown(source), [source]);
+  const html = useMemo(() => renderMarkdown(source, library), [source, library]);
 
   // O HTML é aplicado aqui, e não via dangerouslySetInnerHTML: o React reaplicaria o markup a cada
   // re-render do pai e apagaria os SVGs que o Mermaid injeta depois.

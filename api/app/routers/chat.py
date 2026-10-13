@@ -10,8 +10,9 @@ from pydantic import BaseModel, Field
 from app.config import settings
 from app.db import pool
 from app.middlewares.security import verify_session_token
+from app.services import llm_settings
 from app.services.embeddings import embeddings_client
-from app.services.llm_client import LLMUnavailable, llm_gateway
+from app.services.llm_client import LLMUnavailable, chat_models, llm_gateway
 from app.services.rag import build_chat_messages, hybrid_search
 
 router = APIRouter(prefix="/api", tags=["Chat"], dependencies=[Depends(verify_session_token)])
@@ -36,12 +37,15 @@ class ChatTurn(BaseModel):
 class ChatPayload(BaseModel):
     model: str = Field(min_length=1, max_length=200)
     messages: list[ChatTurn] = Field(min_length=1, max_length=40)
+    library: str | None = Field(None, max_length=200)  # restringe o contexto a uma biblioteca
 
 
 @router.get("/models")
-async def list_models() -> dict[str, list[str]]:
+async def list_models(all: bool = False) -> dict[str, list[str]]:
+    """Modelos de chat do servidor configurado (`all=true` devolve a lista crua)."""
     try:
-        return {"models": await llm_gateway.list_models()}
+        models = await llm_gateway.list_models()
+        return {"models": models if all else chat_models(models)}
     except LLMUnavailable as exc:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
 
@@ -60,9 +64,12 @@ async def chat_stream(payload: ChatPayload, request: Request) -> StreamingRespon
 
     question = payload.messages[-1].content
     async with db.acquire() as conn:
-        hits, mode = await hybrid_search(conn, question, embeddings_client, limit=settings.RAG_TOP_K)
+        hits, mode = await hybrid_search(
+            conn, question, embeddings_client, limit=settings.RAG_TOP_K, library=payload.library
+        )
     history = [m.model_dump() for m in payload.messages]
-    messages, used = build_chat_messages(history, hits, settings.RAG_MAX_CONTEXT_TOKENS)
+    guide = llm_settings.load().guide_prompt
+    messages, used = build_chat_messages(history, hits, settings.RAG_MAX_CONTEXT_TOKENS, guide)
 
     async def events() -> AsyncIterator[str]:
         yield _sse("citations", {"mode": mode, "citations": [h.citation() for h in used]})

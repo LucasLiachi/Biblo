@@ -10,7 +10,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app/
 
-# Arquivos do vault pertencem ao usuário do host: o processo roda com o UID/GID dele
+# Arquivos das bibliotecas pertencem ao usuário do host: o processo roda com o UID/GID dele
 # (definidos no compose), nunca como root.
 USER 1000:1000
 EXPOSE 8000

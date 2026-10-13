@@ -7,8 +7,10 @@ em `api/requirements.txt` e `api/requirements-dev.txt`.
 ## Convenções
 - Configuração só em `app/config.py`. `settings` é importado, nunca lido do ambiente direto.
 - Rotas em `app/routers/`, todas sob `/api` e protegidas por `Depends(verify_session_token)`.
-- Caminhos de arquivo chegam por query (`?path=`) e passam por `resolve_safe_path`. Nunca use `vault_root / entrada`.
-- Gravação no vault: `atomic_write_file`/`atomic_write_bytes`. Exclusão: `move_to_trash`. Nunca `unlink`/`rmtree`.
+- Caminhos de arquivo chegam por query (`?path=`), começam pela biblioteca e passam por `require_inside_library` e
+  `resolve_safe_path` (`app/services/library_fs.py`). Nunca use `settings.LIBRARIES_ROOT / entrada`.
+- Na raiz só existem bibliotecas: criadas por `POST /api/libraries`, nunca movidas ou excluídas por rota.
+- Gravação: `atomic_write_file`/`atomic_write_bytes`. Exclusão: `move_to_trash` (vai para `<biblioteca>/.lixeira`). Nunca `unlink`/`rmtree`.
 - Escrita condicional por `If-Match` com o SHA-256 do arquivo.
 - Depois de gravar ou mover, avise o indexador (`get_indexer().notify(caminho absoluto)`).
 - Corpos de requisição são modelos Pydantic. Erros saem como `HTTPException` com `detail` em português.

@@ -9,19 +9,25 @@ interface DialogFrameProps {
 
 export function DialogFrame({ title, onClose, wide, children }: DialogFrameProps) {
   const ref = useRef<HTMLDivElement>(null);
+  // onClose costuma chegar como função nova a cada render do pai; guardamos a mais recente numa ref para que
+  // o foco inicial e o atalho Esc sejam montados uma única vez (senão o foco pula para o primeiro campo).
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const first = ref.current?.querySelector<HTMLElement>("input, button.btn-primary, button");
     first?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRef.current();
+    };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
       previous?.focus();
     };
-  }, [onClose]);
+  }, []);
   return (
-    <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && closeRef.current()}>
       <div ref={ref} className={`dialog ${wide ? "wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
         <h2>{title}</h2>
         {children}

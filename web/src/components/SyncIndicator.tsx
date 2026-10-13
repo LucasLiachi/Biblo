@@ -8,8 +8,8 @@ interface SyncIndicatorProps {
 /** Estado real do disco e do índice: nunca mostra "sincronizado" quando não está. */
 export function describeSync(index: IndexStatus | null, saveState: SaveState | null): { tone: string; text: string; title: string } {
   if (saveState === "conflict") return { tone: "error", text: "Conflito com o disco", title: "O arquivo mudou fora do Biblo." };
-  if (saveState === "error") return { tone: "error", text: "Falha ao gravar", title: "A última gravação no vault falhou." };
-  if (saveState === "saving" || saveState === "dirty") return { tone: "syncing", text: "Salvando no vault…", title: "Autosave a cada 1,5 s." };
+  if (saveState === "error") return { tone: "error", text: "Falha ao gravar", title: "A última gravação em disco falhou." };
+  if (saveState === "saving" || saveState === "dirty") return { tone: "syncing", text: "Salvando…", title: "Autosave a cada 1,5 s." };
   if (!index) return { tone: "offline", text: "Conectando…", title: "" };
   if (!index.db_connected || index.status === "offline") {
     return { tone: "offline", text: "Índice offline", title: index.last_error ?? "Banco indisponível: edição funciona, busca e chat não." };

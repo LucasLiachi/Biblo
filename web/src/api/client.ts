@@ -1,4 +1,4 @@
-import type { ChatMessage, Citation, IndexStatus, LinksInfo, VaultEntry } from "../types";
+import type { ChatMessage, Citation, IndexStatus, LibraryEntry, LinksInfo, LLMSettings, LLMSettingsInput } from "../types";
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public detail?: unknown) {
@@ -40,7 +40,13 @@ async function request(path: string, init: RequestInit = {}, retry = true): Prom
     } catch {
       /* corpo não-JSON */
     }
-    const message = typeof detail === "string" ? detail : `Erro ${res.status}`;
+    // 422 do FastAPI: lista de erros de validação; mostra só as mensagens.
+    const message =
+      typeof detail === "string"
+        ? detail
+        : Array.isArray(detail)
+          ? detail.map((d: { msg?: string }) => (d.msg ?? "").replace(/^Value error, /, "")).join("; ")
+          : `Erro ${res.status}`;
     throw new ApiError(res.status, message, detail);
   }
   return res;
@@ -55,7 +61,15 @@ const json = (body: unknown): RequestInit => ({
 const q = (params: Record<string, string>) => new URLSearchParams(params).toString();
 
 export const api = {
-  async tree(): Promise<VaultEntry[]> {
+  async libraries(): Promise<string[]> {
+    return (await (await request("/libraries")).json()).libraries;
+  },
+
+  async createLibrary(name: string): Promise<string> {
+    return (await (await request("/libraries", json({ name }))).json()).name;
+  },
+
+  async tree(): Promise<LibraryEntry[]> {
     return (await (await request("/files/tree")).json()).tree;
   },
 
@@ -101,7 +115,8 @@ export const api = {
     await request(`/folders?${q({ path, recursive: String(recursive) })}`, { method: "DELETE" });
   },
 
-  async uploadAsset(file: File, folder = "assets"): Promise<string> {
+  /** Envia uma imagem para `folder` (ex.: "acervo/assets") e devolve o caminho completo. */
+  async uploadAsset(file: File, folder: string): Promise<string> {
     const form = new FormData();
     form.append("file", file);
     return (await (await request(`/assets?${q({ folder })}`, { method: "POST", body: form })).json()).path;
@@ -111,20 +126,40 @@ export const api = {
     return `${BASE}/assets?${q({ path })}`;
   },
 
-  async search(query: string, limit = 10): Promise<{ mode: string; results: Citation[] }> {
-    return (await request(`/search?${q({ q: query, limit: String(limit) })}`)).json();
+  async search(query: string, limit = 10, library?: string): Promise<{ mode: string; results: Citation[] }> {
+    const params: Record<string, string> = { q: query, limit: String(limit) };
+    if (library) params.library = library;
+    return (await request(`/search?${q(params)}`)).json();
   },
 
   async links(path: string): Promise<LinksInfo> {
     return (await request(`/links?${q({ path })}`)).json();
   },
 
-  async resolveLink(target: string): Promise<string | null> {
-    return (await (await request(`/links/resolve?${q({ target })}`)).json()).path;
+  async resolveLink(target: string, library: string): Promise<string | null> {
+    return (await (await request(`/links/resolve?${q({ target, library })}`)).json()).path;
   },
 
   async models(): Promise<string[]> {
     return (await (await request("/models")).json()).models;
+  },
+
+  async llmSettings(): Promise<LLMSettings> {
+    return (await request("/settings/llm")).json();
+  },
+
+  async saveLLMSettings(input: LLMSettingsInput): Promise<LLMSettings> {
+    return (await request("/settings/llm", { ...json(input), method: "PUT" })).json();
+  },
+
+  /** Testa endereço e token sem salvar; devolve os modelos de chat e de embedding disponíveis. */
+  async testLLMSettings(input: LLMSettingsInput): Promise<{ models: string[]; embedding_models: string[] }> {
+    return (await request("/settings/llm/test", json(input))).json();
+  },
+
+  /** Gera um vetor de teste com a configuração de embeddings informada; devolve a dimensão. */
+  async testEmbeddings(input: LLMSettingsInput): Promise<number> {
+    return (await (await request("/settings/embeddings/test", json(input))).json()).dimensions;
   },
 
   async indexStatus(): Promise<IndexStatus> {
@@ -145,8 +180,9 @@ export const api = {
       onError: (message: string) => void;
     },
     signal: AbortSignal,
+    library?: string,
   ): Promise<void> {
-    const res = await request("/chat/stream", { ...json({ model, messages }), signal });
+    const res = await request("/chat/stream", { ...json({ model, messages, library: library || null }), signal });
     const reader = res.body!.getReader();
     const decoder = new TextDecoder();
     let buffer = "";

@@ -1,4 +1,4 @@
-"""Cliente de embeddings (Ollama nativo ou endpoint OpenAI-compatível do LiteLLM)."""
+"""Cliente de embeddings (Ollama nativo ou endpoint OpenAI-compatível), configurável em tempo de execução."""
 
 import httpx
 
@@ -18,12 +18,18 @@ class EmbeddingsClient:
         dim: int = settings.EMBEDDING_DIM,
         api_key: str = settings.LLM_API_KEY,
     ) -> None:
+        self.dim = dim
+        self.last_error: str | None = None
+        self.configure(provider, base_url, model, api_key)
+
+    def configure(self, provider: str, base_url: str, model: str, api_key: str) -> None:
         self.provider = provider
         self.base_url = base_url.rstrip("/")
         self.model = model
-        self.dim = dim
         self.api_key = api_key
-        self.last_error: str | None = None
+        self.last_error = None
+        # Pede vetores no tamanho do índice (Gemini e OpenAI text-embedding-3 aceitam); quem recusar recebe sem o campo.
+        self.send_dimensions = True
 
     @property
     def enabled(self) -> bool:
@@ -53,15 +59,23 @@ class EmbeddingsClient:
                     vectors = res.json()["embeddings"]
                 elif self.provider == "openai":
                     headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
-                    res = await client.post(
-                        f"{self.base_url}/embeddings", json={"model": self.model, "input": inputs}, headers=headers
-                    )
+                    body: dict[str, object] = {"model": self.model, "input": inputs}
+                    if self.send_dimensions:
+                        body["dimensions"] = self.dim
+                    res = await client.post(f"{self.base_url}/embeddings", json=body, headers=headers)
+                    if res.status_code == 400 and self.send_dimensions and "dimension" in res.text.lower():
+                        self.send_dimensions = False
+                        body.pop("dimensions")
+                        res = await client.post(f"{self.base_url}/embeddings", json=body, headers=headers)
                     res.raise_for_status()
-                    vectors = [item["embedding"] for item in sorted(res.json()["data"], key=lambda d: d["index"])]
+                    # O Gemini omite "index" quando vale 0; sem o campo, vale a posição na lista.
+                    data = list(enumerate(res.json()["data"]))
+                    vectors = [item["embedding"] for _, item in sorted(data, key=lambda p: p[1].get("index", p[0]))]
                 else:
                     raise EmbeddingsUnavailable(f"EMBEDDING_PROVIDER desconhecido: {self.provider}")
         except (httpx.HTTPError, KeyError, ValueError) as exc:
-            self.last_error = f"{self.model_id} indisponível em {self.base_url}: {exc.__class__.__name__}"
+            detail = exc.response.status_code if isinstance(exc, httpx.HTTPStatusError) else exc.__class__.__name__
+            self.last_error = f"{self.model_id} indisponível em {self.base_url}: {detail}"
             raise EmbeddingsUnavailable(self.last_error) from exc
 
         for vector in vectors:

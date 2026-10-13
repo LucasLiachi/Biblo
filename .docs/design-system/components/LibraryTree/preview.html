@@ -1,0 +1,36 @@
+<!-- @dsCard group="Navegação" height=300 subtitle="Bibliotecas no primeiro nível; pastas, notas e diagramas dentro de cada uma" -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../tokens.css">
+  <link rel="stylesheet" href="../bundle.css">
+</head>
+<body>
+  <nav class="library-tree" aria-label="Bibliotecas">
+    <div class="tree-header">
+      <span>Bibliotecas</span>
+      <button class="btn btn-ghost btn-icon" type="button" aria-label="Nova biblioteca">📚</button>
+    </div>
+    <ul class="tree-list" role="tree">
+      <li role="treeitem" aria-expanded="true">
+        <div class="tree-item"><div class="tree-item-label"><span class="tree-icon">📚</span><strong>acervo</strong></div></div>
+        <ul class="tree-list" role="group" style="padding-left:14px">
+          <li role="treeitem" aria-expanded="true">
+            <div class="tree-item"><div class="tree-item-label"><span class="tree-icon tree-icon-folder">📂</span><span>notas</span></div></div>
+            <ul class="tree-list" role="group" style="padding-left:14px">
+              <li role="treeitem"><div class="tree-item active"><div class="tree-item-label"><span class="tree-icon tree-icon-md">📄</span><span>arquitetura.md</span></div></div></li>
+              <li role="treeitem"><div class="tree-item"><div class="tree-item-label"><span class="tree-icon tree-icon-md">📄</span><span>regras.md</span></div></div></li>
+            </ul>
+          </li>
+          <li role="treeitem"><div class="tree-item"><div class="tree-item-label"><span class="tree-icon tree-icon-canvas">🎨</span><span>fluxo.excalidraw</span></div></div></li>
+        </ul>
+      </li>
+      <li role="treeitem" aria-expanded="false">
+        <div class="tree-item"><div class="tree-item-label"><span class="tree-icon">📚</span><strong>pesquisa</strong></div></div>
+      </li>
+    </ul>
+  </nav>
+</body>
+</html>

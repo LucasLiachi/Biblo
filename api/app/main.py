@@ -13,6 +13,8 @@ from app.routers.chat import router as chat_router
 from app.routers.files import router as files_router
 from app.routers.index_routes import router as index_router
 from app.routers.search import router as search_router
+from app.routers.settings import router as settings_router
+from app.services import llm_settings
 from app.services.embeddings import embeddings_client
 from app.services.indexer import Indexer, set_indexer
 
@@ -21,17 +23,18 @@ log = logging.getLogger("biblo")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    settings.VAULT_ROOT.mkdir(parents=True, exist_ok=True)
+    settings.LIBRARIES_ROOT.mkdir(parents=True, exist_ok=True)
+    llm_settings.apply(llm_settings.load())
     connection_pool = None
     try:
         connection_pool = await db.connect()
         async with connection_pool.acquire() as conn:
             if await db.ensure_schema(conn):
-                log.warning("Schema do índice (re)criado; o vault será reindexado do disco.")
-    except Exception as exc:  # API segue servindo o vault mesmo sem banco
+                log.warning("Schema do índice (re)criado; as bibliotecas serão reindexadas do disco.")
+    except Exception as exc:  # API segue servindo as bibliotecas mesmo sem banco
         log.error("Banco indisponível (%s). Edição funciona; busca e chat ficam desativados.", exc)
         connection_pool = None
-    indexer = Indexer(settings.VAULT_ROOT, connection_pool, embeddings_client)
+    indexer = Indexer(settings.LIBRARIES_ROOT, connection_pool, embeddings_client)
     set_indexer(indexer)
     await indexer.start()
     yield
@@ -42,7 +45,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(
     title="Biblo Knowledge Studio API",
-    description="Vault local-first (Markdown + Excalidraw), índice híbrido e copiloto RAG.",
+    description="Bibliotecas local-first (Markdown + Excalidraw), índice híbrido e chat RAG (Pergunte para o Biblo).",
     version="0.2.0",
     docs_url="/api/docs" if settings.is_dev else None,
     redoc_url=None,
@@ -65,7 +68,7 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
 
 @app.get("/api/health", tags=["Saúde"])
 async def health_check() -> dict[str, object]:
-    return {"status": "ok", "db_connected": db.pool() is not None, "vault_mounted": settings.VAULT_ROOT.exists()}
+    return {"status": "ok", "db_connected": db.pool() is not None, "libraries_mounted": settings.LIBRARIES_ROOT.exists()}
 
 
 @app.get("/api/session", tags=["Sessão"])
@@ -87,4 +90,5 @@ async def open_session(request: Request) -> Response:
 app.include_router(files_router)
 app.include_router(search_router)
 app.include_router(chat_router)
+app.include_router(settings_router)
 app.include_router(index_router)

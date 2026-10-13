@@ -90,9 +90,9 @@
   --header-height: 44px;
   --tab-height: 38px;
   --statusbar-height: 28px;
-  --sidebar-vault-default: 260px;
-  --sidebar-vault-min: 200px;
-  --sidebar-vault-max: 420px;
+  --sidebar-library-default: 260px;
+  --sidebar-library-min: 200px;
+  --sidebar-library-max: 420px;
   --sidebar-chat-default: 360px;
   --sidebar-chat-min: 300px;
   --sidebar-chat-max: 560px;

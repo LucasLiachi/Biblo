@@ -1,4 +1,4 @@
-"""Transforma notas e diagramas do vault em chunks indexáveis e links."""
+"""Transforma notas e diagramas das bibliotecas em chunks indexáveis e links."""
 
 import json
 import re

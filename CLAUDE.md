@@ -14,7 +14,8 @@ CONSTITUTION, CONTEXT, RULES e HANDOFF. Aqui fica só o que é específico do Bi
   (design system + typecheck + testes + build).
 - **Design system**: edite só `.docs/design-system/` e rode `npm run ds:sync`. `web/src/styles/tokens.css`,
   `web/src/styles/bundle.css` e `web/public/brand/*` são cópias geradas.
-- **Vault**: `./vault` é dado do usuário e fica fora do Git. Testes nunca escrevem nele.
+- **Bibliotecas**: `./bibliotecas/<nome>` é dado do usuário e fica fora do Git. Na raiz só existem bibliotecas; tudo o
+  mais vive dentro de uma. Testes nunca escrevem em `./bibliotecas`.
 
 ## Ponte de IA (gerada por `../scripts/sync-ai.sh`, não edite)
 `.claude/skills`, `.claude/agents`, `.agents/skills`, `.agents/rules`, `.agent/workflows` → SSOT na raiz.

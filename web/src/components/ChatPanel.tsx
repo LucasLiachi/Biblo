@@ -1,4 +1,4 @@
-import { Eraser, Send, Square, X } from "lucide-react";
+import { Eraser, Send, Settings, Square, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 
 import { ApiError, api } from "../api/client";
@@ -6,20 +6,26 @@ import { renderChatMarkdown } from "../lib/markdown";
 import type { ChatMessage } from "../types";
 import { BrandMark } from "./BrandMark";
 import { CitationBadge } from "./CitationBadge";
+import { LLMSettingsDialog } from "./LLMSettingsDialog";
 
 interface ChatPanelProps {
+  libraries: string[];
+  /** Biblioteca de trabalho; vira o escopo padrão do chat. */
+  currentLibrary: string | null;
   onOpenPath: (path: string, line?: number) => void;
   onClose: () => void;
 }
 
-const MODEL_KEY = "biblo.chat.model";
 const newId = () => crypto.randomUUID();
 
-/** O copiloto cita no formato [notas/x.md]; vira link clicável para o arquivo. */
+/** O Biblo cita no formato [notas/x.md]; vira link clicável para o arquivo. */
 const linkCitations = (text: string) => text.replace(/\[([^[\]\n]+?\.(?:md|markdown|excalidraw))\](?!\()/g, "[[$1]]");
 
-export function ChatPanel({ onOpenPath, onClose }: ChatPanelProps) {
+const ALL = "";
+
+export function ChatPanel({ libraries, currentLibrary, onOpenPath, onClose }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [scope, setScope] = useState<string>(currentLibrary ?? ALL);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [models, setModels] = useState<string[]>([]);
@@ -28,26 +34,38 @@ export function ChatPanel({ onOpenPath, onClose }: ChatPanelProps) {
   const abort = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  /** Modelos do servidor configurado; o modelo padrão da configuração vem selecionado. */
   const loadModels = useCallback(() => {
     setModelsError(null);
-    api
-      .models()
-      .then((list) => {
+    Promise.all([api.models(), api.llmSettings().catch(() => null)])
+      .then(([list, config]) => {
+        // A lista já vem filtrada (só modelos de chat); um padrão fora dela não é usado.
+        const preferred = config?.default_model ?? "";
         setModels(list);
-        let saved = "";
-        try {
-          saved = localStorage.getItem(MODEL_KEY) ?? "";
-        } catch {
-          /* sem armazenamento */
-        }
-        setModel(list.includes(saved) ? saved : (list[0] ?? ""));
-        if (!list.length) setModelsError("O gateway não expõe nenhum modelo.");
+        setModel(list.includes(preferred) ? preferred : (list[0] ?? ""));
+        if (!list.length) setModelsError("O servidor configurado não expõe nenhum modelo de chat.");
       })
-      .catch((err) => setModelsError(err instanceof ApiError ? err.message : "Gateway de LLM indisponível."));
+      .catch((err) => {
+        setModels([]);
+        setModel("");
+        setModelsError(err instanceof ApiError ? err.message : "Servidor de LLM indisponível.");
+      });
   }, []);
 
-  useEffect(loadModels, [loadModels]);
-  useEffect(() => endRef.current?.scrollIntoView({ block: "end" }), [messages]);
+  // Efeitos sempre com corpo em chaves: no Chrome atual scrollIntoView() devolve uma Promise, e um efeito que
+  // devolve algo além de função derruba o React na limpeza.
+  useEffect(() => {
+    loadModels();
+  }, [loadModels]);
+  // Ao trocar de biblioteca de trabalho, o chat acompanha.
+  useEffect(() => {
+    setScope(currentLibrary ?? ALL);
+  }, [currentLibrary]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ block: "end" });
+  }, [messages]);
   useEffect(() => () => abort.current?.abort(), []);
 
   const update = (id: string, fn: (m: ChatMessage) => ChatMessage) =>
@@ -74,6 +92,7 @@ export function ChatPanel({ onOpenPath, onClose }: ChatPanelProps) {
           onError: (message) => update(assistant.id, (m) => ({ ...m, error: message })),
         },
         controller.signal,
+        scope || undefined,
       );
     } catch (err) {
       if (!(err instanceof DOMException && err.name === "AbortError")) {
@@ -87,7 +106,7 @@ export function ChatPanel({ onOpenPath, onClose }: ChatPanelProps) {
 
   const onBubbleClick = (e: MouseEvent) => {
     const anchor = (e.target as HTMLElement).closest("a");
-    // Citações inline no formato [caminho/arquivo.md] chegam como texto; links do vault abrem no editor.
+    // Citações inline no formato [caminho/arquivo.md] chegam como texto; viram links que abrem no editor.
     if (anchor?.dataset.wikilink) {
       e.preventDefault();
       onOpenPath(anchor.dataset.wikilink);
@@ -95,49 +114,65 @@ export function ChatPanel({ onOpenPath, onClose }: ChatPanelProps) {
   };
 
   return (
-    <section className="chat-panel" aria-label="Copiloto do vault">
+    <section className="chat-panel" aria-label="Pergunte para o Biblo">
       <header className="chat-header">
-        <span className="chat-header-title">Copiloto</span>
+        <span className="chat-header-title">Pergunte para o Biblo</span>
         <span className="header-actions">
-          {models.length > 0 && (
-            <select
-              className="chat-model-select"
-              aria-label="Modelo"
-              value={model}
-              onChange={(e) => {
-                setModel(e.target.value);
-                try {
-                  localStorage.setItem(MODEL_KEY, e.target.value);
-                } catch {
-                  /* sem armazenamento */
-                }
-              }}
-            >
-              {models.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          )}
+          <button
+            type="button"
+            className="btn btn-ghost btn-icon"
+            title="Configurar o Biblo (modelo, token e prompt guia)"
+            aria-label="Configurar o Biblo"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Settings size={15} />
+          </button>
           <button type="button" className="btn btn-ghost btn-icon" title="Limpar conversa" aria-label="Limpar conversa" onClick={() => setMessages([])} disabled={streaming}>
             <Eraser size={15} />
           </button>
-          <button type="button" className="btn btn-ghost btn-icon" title="Fechar (Ctrl+Shift+L)" aria-label="Fechar copiloto" onClick={onClose}>
+          <button type="button" className="btn btn-ghost btn-icon" title="Fechar (Ctrl+Shift+L)" aria-label="Fechar Pergunte para o Biblo" onClick={onClose}>
             <X size={15} />
           </button>
         </span>
       </header>
+      <div className="chat-scope">
+        <label>
+          <span>Biblioteca</span>
+          <select className="chat-model-select" value={scope} onChange={(e) => setScope(e.target.value)} disabled={streaming}>
+            {libraries.map((l) => (
+              <option key={l} value={l}>{l}</option>
+            ))}
+            <option value={ALL}>Todas as bibliotecas</option>
+          </select>
+        </label>
+        {models.length > 0 && (
+          <label>
+            <span>Modelo</span>
+            <select className="chat-model-select" value={model} onChange={(e) => setModel(e.target.value)} disabled={streaming}>
+              {models.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
 
       <div className="chat-messages" aria-live="polite">
         {modelsError && (
           <div className="chat-notice error" role="alert">
-            {modelsError} Configure LLM_BASE_URL no .env.{" "}
-            <button type="button" className="btn btn-ghost" onClick={loadModels}>Tentar de novo</button>
+            <p>{modelsError}</p>
+            <div className="chat-notice-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setSettingsOpen(true)}>
+                <Settings size={13} /> Configurar
+              </button>
+              <button type="button" className="btn btn-ghost" onClick={loadModels}>Tentar de novo</button>
+            </div>
           </div>
         )}
         {messages.length === 0 && (
           <div className="chat-empty">
             <BrandMark variant="solid" title="" />
-            <p>Pergunte sobre suas notas e diagramas. As respostas citam os arquivos do vault.</p>
+            <p>Pergunte sobre as notas e diagramas da biblioteca. As respostas citam os arquivos usados.</p>
           </div>
         )}
         {messages.map((m) => (
@@ -160,7 +195,7 @@ export function ChatPanel({ onOpenPath, onClose }: ChatPanelProps) {
                   </div>
                 )}
                 {m.citations && m.citations.length === 0 && !streaming && (
-                  <div className="chat-meta">Nenhum trecho do vault foi encontrado para esta pergunta.</div>
+                  <div className="chat-meta">Nenhum trecho da biblioteca foi encontrado para esta pergunta.</div>
                 )}
                 {m.searchMode === "text" && <div className="chat-meta">Busca só textual: embeddings indisponíveis.</div>}
               </>
@@ -173,8 +208,8 @@ export function ChatPanel({ onOpenPath, onClose }: ChatPanelProps) {
       <div className="chat-input-box">
         <textarea
           className="chat-textarea"
-          placeholder={model ? "Pergunte ao seu vault…" : "Configure um modelo para conversar"}
-          aria-label="Mensagem para o copiloto"
+          placeholder={model ? (scope ? `Pergunte à biblioteca ${scope}…` : "Pergunte a todas as bibliotecas…") : "Configure um modelo para conversar"}
+          aria-label="Mensagem para o Biblo"
           value={input}
           disabled={!model}
           onChange={(e) => setInput(e.target.value)}
@@ -198,6 +233,12 @@ export function ChatPanel({ onOpenPath, onClose }: ChatPanelProps) {
           )}
         </div>
       </div>
+      {settingsOpen && (
+        <LLMSettingsDialog
+          onClose={() => setSettingsOpen(false)}
+          onSaved={() => loadModels()}
+        />
+      )}
     </section>
   );
 }

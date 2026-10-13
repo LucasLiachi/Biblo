@@ -1,5 +1,5 @@
 -- Schema do índice do Biblo (versão 3). Aplicado pela API em app/db.py.
--- Tudo aqui é derivado de ./vault e pode ser apagado: o indexador reconstrói.
+-- Tudo aqui é derivado de ./bibliotecas e pode ser apagado: o indexador reconstrói.
 
 DO $$
 BEGIN

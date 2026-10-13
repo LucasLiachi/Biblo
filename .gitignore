@@ -40,11 +40,12 @@ Thumbs.db
 *.swo
 
 
-# Vault pessoal: são os seus arquivos, não código. Semente em examples/vault/.
-/vault/
+# Bibliotecas pessoais: são os seus arquivos, não código. Exemplo em examples/bibliotecas/.
+/bibliotecas/
 
 # Gerados no build do web
 /web/public/excalidraw-assets/
 
 # Metadado de download do Windows (ADS)
 *:Zone.Identifier
+*.tsbuildinfo

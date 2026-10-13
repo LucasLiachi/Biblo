@@ -43,3 +43,14 @@ def test_retrieved_documents_never_go_into_system_prompt() -> None:
     assert messages[-1] == {"role": "user", "content": "e o fluxo?"}
     assert messages[1:3] == history[:2]
     assert len(used) == 1
+
+
+def test_guide_prompt_is_appended_without_replacing_rules() -> None:
+    from app.services.rag import build_system_prompt
+
+    assert build_system_prompt("") == SYSTEM_PROMPT
+    prompt = build_system_prompt("Seja breve e use tópicos.")
+    assert prompt.startswith(SYSTEM_PROMPT)
+    assert "<guia>\nSeja breve e use tópicos.\n</guia>" in prompt
+    messages, _ = build_chat_messages([{"role": "user", "content": "oi"}], [_hit(1)], 4000, "Seja breve.")
+    assert "Seja breve." in messages[0]["content"]

@@ -1,5 +1,5 @@
 /**
- * Leitura de arquivos .excalidraw do vault.
+ * Leitura de arquivos .excalidraw das bibliotecas.
  *
  * Arquivos gravados pelo canvas provisório (antes do Excalidraw real) usam um formato
  * próprio: { type: "sticky" | "flowchart-process" | ..., text, x, y, fromId, toId }.

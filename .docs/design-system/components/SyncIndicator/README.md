@@ -9,7 +9,7 @@ prioridade:
 | :--- | :--- | :--- |
 | Conflito com o disco | `.error` | O arquivo mudou fora do Biblo durante a edição |
 | Falha ao gravar | `.error` | A última gravação falhou |
-| Salvando no vault… | `.syncing` | Alteração pendente ou gravando |
+| Salvando… | `.syncing` | Alteração pendente ou gravando |
 | Índice offline | `.offline` | Banco desconectado |
 | Indexando… | `.syncing` | Indexador ocupado ou com fila |
 | Sincronizado · N docs · só texto | `.syncing` | Há trechos sem embedding (provedor indisponível) |

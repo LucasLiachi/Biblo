@@ -1,7 +1,7 @@
 {
   "name": "Biblo",
   "short_name": "Biblo",
-  "description": "Knowledge Studio local-first: notas, diagramas e copiloto sobre o seu vault.",
+  "description": "Knowledge Studio local-first: notas, diagramas e o chat Pergunte para o Biblo sobre as suas bibliotecas.",
   "start_url": "/",
   "display": "standalone",
   "icons": [

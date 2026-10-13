@@ -1,8 +1,13 @@
+import { Library } from "lucide-react";
+
 export function Breadcrumb({ path }: { path: string }) {
-  const parts = path.split("/");
+  const [library, ...parts] = path.split("/");
   return (
-    <nav className="breadcrumb" aria-label="Caminho no vault">
-      <span className="breadcrumb-crumb">vault</span>
+    <nav className="breadcrumb" aria-label="Caminho na biblioteca">
+      <span className="breadcrumb-crumb" title="Biblioteca">
+        <Library size={12} aria-hidden="true" />
+        {library}
+      </span>
       {parts.map((part, i) => (
         <span key={`${i}-${part}`} style={{ display: "contents" }}>
           <span className="breadcrumb-separator" aria-hidden="true">/</span>

@@ -14,9 +14,10 @@ Fonte única de tokens, estilos de componentes e marca do app `web/`. O app usa 
 
 ## Princípios
 
-- **Disco é a verdade**: a interface mostra o estado real do vault e do índice, inclusive falhas.
+- **Disco é a verdade**: a interface mostra o estado real das bibliotecas e do índice, inclusive falhas.
+- **Bibliotecas dedicadas**: cada biblioteca é uma pasta mestra com seus materiais; o primeiro nível só aceita bibliotecas.
 - **Tema escuro como padrão**, tema claro equivalente; ambos com contraste WCAG 2.1 AA verificado.
-- **Cores com significado fixo**: primário (ações), IA (copiloto), canvas (diagramas), wikilink (links entre notas),
+- **Cores com significado fixo**: primário (ações), IA (Pergunte para o Biblo), canvas (diagramas), wikilink (links entre notas),
   status (sucesso, aviso, perigo).
 - **Teclado completo**: atalhos fora dos reservados do navegador e foco visível em todos os controles.
 
@@ -33,7 +34,7 @@ Fonte única de tokens, estilos de componentes e marca do app `web/`. O app usa 
 | Marca | `--brand-ink`, `--brand-amber`, `--brand-paper` |
 | Tipografia | `--font-sans` (Inter), `--font-mono` (JetBrains Mono), `--text-xs` a `--text-3xl` |
 | Espaço e forma | `--space-*` (base 4 px), `--radius-*`, `--shadow-*`, `--transition-*`, `--z-*` |
-| Dimensões | `--header-height` 44 px, `--tab-height` 38 px, `--statusbar-height` 28 px, `--sidebar-vault-default` 260 px, `--sidebar-chat-default` 360 px |
+| Dimensões | `--header-height` 44 px, `--tab-height` 38 px, `--statusbar-height` 28 px, `--sidebar-library-default` 260 px, `--sidebar-chat-default` 360 px |
 
 As fontes Inter e JetBrains Mono vêm de `@fontsource`, empacotadas no build.
 
@@ -42,7 +43,7 @@ As fontes Inter e JetBrains Mono vêm de `@fontsource`, empacotadas no build.
 | Componente | Arquivo no app |
 | :--- | :--- |
 | [AppHeader](components/AppHeader/README.md) | `components/AppHeader.tsx` |
-| [VaultTree](components/VaultTree/README.md) | `components/VaultTree.tsx` |
+| [LibraryTree](components/LibraryTree/README.md) | `components/LibraryTree.tsx` |
 | [DocumentTabs](components/DocumentTabs/README.md) | `components/DocumentTabs.tsx` |
 | [Breadcrumb](components/Breadcrumb/README.md) | `components/Breadcrumb.tsx` |
 | [MarkdownEditor](components/MarkdownEditor/README.md) | `components/MarkdownEditor.tsx`, `MarkdownPreview.tsx` |
@@ -62,8 +63,8 @@ Layout, diálogos e preview de Markdown ficam em `web/src/styles/app.css`, que t
 | Busca e comandos | `Cmd K` | `Ctrl K` |
 | Salvar agora | `Cmd S` | `Ctrl S` |
 | Fechar aba do documento | `Option W` | `Alt W` |
-| Painel do vault | `Cmd Shift B` | `Ctrl Shift B` |
-| Painel do copiloto | `Cmd Shift L` | `Ctrl Shift L` |
+| Painel de bibliotecas | `Cmd Shift B` | `Ctrl Shift B` |
+| Painel Pergunte para o Biblo | `Cmd Shift L` | `Ctrl Shift L` |
 | Modo foco (oculta as laterais) | `Cmd Shift F` | `Ctrl Shift F` |
 | Negrito / itálico / código (editor) | `Cmd B` / `I` / `E` | `Ctrl B` / `I` / `E` |
 | Buscar no texto (editor) | `Cmd F` | `Ctrl F` |

@@ -2,8 +2,9 @@
 
 # Biblo: Knowledge Studio local-first
 
-Notas em Markdown estilo Obsidian, diagramas e fluxos no Excalidraw e um copiloto que responde com base nos seus arquivos.
-Tudo roda em localhost, e **a pasta `./vault/` é a única fonte da verdade**.
+Notas em Markdown estilo Obsidian, diagramas e fluxos no Excalidraw e o chat **Pergunte para o Biblo**, que responde com base nos seus arquivos.
+Os materiais ficam em **bibliotecas**: pastas mestras em `./bibliotecas/`, cada uma dedicada a um assunto. Tudo roda
+em localhost, e os arquivos em disco são a única fonte da verdade.
 
 ---
 
@@ -11,10 +12,10 @@ Tudo roda em localhost, e **a pasta `./vault/` é a única fonte da verdade**.
 
 | Painel | Recurso |
 | :--- | :--- |
-| **Vault** | Árvore de pastas do `./vault`: criar nota, diagrama e pasta em qualquer nível, renomear (`F2`), mover arrastando, excluir para `vault/.lixeira/`, filtro por nome |
-| **Editor** | CodeMirror 6 com modos Editar, Dividido e Visualizar; `[[wikilinks]]` com autocomplete e `Ctrl+clique`; checklists clicáveis; tabelas; fluxogramas Mermaid; imagens do vault; estrutura do documento; backlinks e links de saída |
+| **Bibliotecas** | No primeiro nível, só bibliotecas (a única ação é "Nova biblioteca"). Dentro de cada uma: criar nota, diagrama e pasta, renomear (`F2`), mover arrastando (inclusive entre bibliotecas), excluir para `<biblioteca>/.lixeira/`, filtro por nome |
+| **Editor** | CodeMirror 6 com modos Editar, Dividido e Visualizar; `[[wikilinks]]` com autocomplete e `Ctrl+clique`; checklists clicáveis; tabelas; fluxogramas Mermaid; imagens da biblioteca; estrutura do documento; backlinks e links de saída |
 | **Canvas** | Excalidraw nativo (`.excalidraw` compatível com excalidraw.com e Obsidian), em português, com Mermaid para diagrama e fontes servidas localmente |
-| **Copiloto** | Chat com streaming SSE sobre o vault: busca híbrida (FTS em português sem acento + vetorial pgvector, fundidas por RRF) e citações clicáveis para o arquivo e a linha |
+| **Pergunte para o Biblo** | Chat com streaming SSE no escopo de uma biblioteca (ou de todas): busca híbrida (FTS em português sem acento + vetorial pgvector, fundidas por RRF) e citações clicáveis para o arquivo e a linha |
 
 Garantias local-first:
 
@@ -23,7 +24,7 @@ Garantias local-first:
   Nada é sobrescrito em silêncio.
 - **Disco é a verdade**: o índice do Postgres é descartável e é reconstruído do disco no boot. Mudanças externas chegam
   pelo watcher (inotify, com polling automático no WSL2 em `/mnt/*`).
-- **Degradação honesta**: sem Ollama, a busca funciona só por texto e o status avisa. Sem gateway de LLM, o copiloto
+- **Degradação honesta**: sem Ollama, a busca funciona só por texto e o status avisa. Sem servidor de LLM, o chat
   mostra o erro. Nenhuma resposta, modelo ou arquivo é simulado.
 
 ---
@@ -39,11 +40,11 @@ flowchart LR
     STATIC[SPA + CSP estrita]
   end
   subgraph API["biblo_api · FastAPI · 127.0.0.1:2011"]
-    FILES[Vault: safe_path, ETag/If-Match, gravação atômica]
+    FILES[Bibliotecas: safe_path, ETag/If-Match, gravação atômica]
     IDX[Indexador: reconciliação + watchdog]
     RAG[Busca híbrida RRF + chat SSE]
   end
-  DISK[(./vault)]
+  DISK[(./bibliotecas)]
   PG[(Postgres 17 + pgvector<br/>rede interna)]
   LLM[LiteLLM do AILab / Ollama]
 
@@ -71,7 +72,7 @@ Pré-requisitos: Docker com Compose v2 e a rede `ailab_net` (`docker network cre
 
 ```bash
 cp .env.example .env                    # defina DB_PASSWORD (openssl rand -base64 24)
-mkdir -p vault && cp -rn examples/vault/. vault/   # primeira vez: nota de boas-vindas
+mkdir -p bibliotecas && cp -rn examples/bibliotecas/. bibliotecas/   # opcional: biblioteca de exemplo
 docker compose up -d --build
 ```
 
@@ -80,7 +81,8 @@ docker compose up -d --build
 - Postgres: só na rede interna. Para inspecionar: `docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d` (porta `127.0.0.1:2012`)
 
 Busca semântica: Ollama no host com `nomic-embed-text`. Enquanto o provedor não responde, a busca é só textual e o
-indexador completa os vetores quando ele volta. Chat: aponte `LLM_BASE_URL`/`LLM_API_KEY` para o LiteLLM do AILab ou para `http://host.docker.internal:11434/v1`.
+indexador completa os vetores quando ele volta. Chat: na engrenagem de "Pergunte para o Biblo" configure endereço da API (compatível com OpenAI), token, modelo padrão
+e prompt guia. Sem configuração salva, valem `LLM_BASE_URL`/`LLM_API_KEY` do `.env`.
 
 ### Desenvolvimento
 
@@ -105,7 +107,7 @@ A API não confia em "é localhost". Detalhes em [`.docs/arquitetura.md`](.docs/
 
 | Ameaça | Proteção |
 | :--- | :--- |
-| Site malicioso escrevendo no vault (CSRF) | Sessão em cookie `HttpOnly` + `SameSite=Strict`; escrita exige `application/json`; `Origin` e `Sec-Fetch-Site` verificados |
+| Site malicioso escrevendo nas bibliotecas (CSRF) | Sessão em cookie `HttpOnly` + `SameSite=Strict`; escrita exige `application/json`; `Origin` e `Sec-Fetch-Site` verificados |
 | DNS rebinding | `TrustedHostMiddleware` (só `localhost`, `127.0.0.1`, `biblo_api`) |
 | Path traversal | `resolve_safe_path`: resolução canônica, sem `..`, sem symlink, sem caminho absoluto, extensões permitidas |
 | XSS por nota, asset ou resposta da IA | Markdown sem HTML bruto + DOMPurify; SVG servido como anexo; CSP `script-src 'self'` |
@@ -121,11 +123,11 @@ A API não confia em "é localhost". Detalhes em [`.docs/arquitetura.md`](.docs/
 Biblo/
 ├── api/                    FastAPI: app/{routers,services,middlewares}, schema.sql, tests/
 ├── web/                    React + Vite: src/{components,lib,hooks,api,styles}
-├── examples/vault/         Semente do vault (o ./vault real é seu e fica fora do Git)
+├── examples/bibliotecas/   Biblioteca de exemplo (as suas ficam em ./bibliotecas, fora do Git)
 ├── scripts/design-system/  sync, check e pre-commit do design system
 ├── .docs/                  arquitetura.md, backend.md e design-system/ (tokens, componentes, marca, proteção)
 ├── docker-compose.yml      biblo_postgres, biblo_api, biblo_web (+ perfil test)
-└── vault/                  Seus arquivos (.md, .excalidraw, assets/)
+└── bibliotecas/            Uma pasta por biblioteca (.md, .excalidraw, assets/)
 ```
 
 ## Licença

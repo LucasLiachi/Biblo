@@ -1,18 +1,23 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTree, kindOf, remapPath, validateName, withExtension } from "./vault";
+import { buildTree, insideLibrary, kindOf, libraryOf, remapPath, validateName, withExtension } from "./paths";
 
 describe("buildTree", () => {
-  it("aninha e ordena pastas antes de arquivos", () => {
+  it("aninha bibliotecas, pastas e arquivos, com pastas antes de arquivos", () => {
     const tree = buildTree([
-      { path: "notas/b.md", name: "b.md", type: "file", kind: "markdown" },
-      { path: "z.md", name: "z.md", type: "file", kind: "markdown" },
-      { path: "notas", name: "notas", type: "directory" },
-      { path: "notas/a.md", name: "a.md", type: "file", kind: "markdown" },
-      { path: "notas/sub", name: "sub", type: "directory" },
+      { path: "acervo/b.md", name: "b.md", type: "file", kind: "markdown" },
+      { path: "pesquisa", name: "pesquisa", type: "library" },
+      { path: "acervo", name: "acervo", type: "library" },
+      { path: "acervo/a.md", name: "a.md", type: "file", kind: "markdown" },
+      { path: "acervo/sub", name: "sub", type: "directory" },
     ]);
-    expect(tree.map((n) => n.name)).toEqual(["notas", "z.md"]);
+    expect(tree.map((n) => n.name)).toEqual(["acervo", "pesquisa"]);
     expect(tree[0].children.map((n) => n.name)).toEqual(["sub", "a.md", "b.md"]);
+  });
+
+  it("identifica a biblioteca e o caminho dentro dela", () => {
+    expect(libraryOf("acervo/notas/x.md")).toBe("acervo");
+    expect(insideLibrary("acervo/notas/x.md")).toBe("notas/x.md");
   });
 });
 

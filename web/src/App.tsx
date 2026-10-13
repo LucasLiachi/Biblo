@@ -1,5 +1,5 @@
-import { FilePlus2, Workflow } from "lucide-react";
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { FilePlus2, LibraryBig, Workflow } from "lucide-react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ApiError, ConflictError, api } from "./api/client";
 import { AppHeader } from "./components/AppHeader";
@@ -9,11 +9,23 @@ import { CommandPalette } from "./components/CommandPalette";
 import { ConflictModal } from "./components/ConflictModal";
 import { ConfirmDialog, PromptDialog, type ConfirmRequest, type PromptRequest } from "./components/Dialog";
 import { DocumentTabs } from "./components/DocumentTabs";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MarkdownEditor } from "./components/MarkdownEditor";
-import { VaultTree, type VaultActions } from "./components/VaultTree";
+import { LibraryTree, type LibraryActions } from "./components/LibraryTree";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
-import { baseName, joinPath, kindOf, parentOf, remapPath, stripExtension, validateName, withExtension } from "./lib/vault";
-import type { Conflict, DocumentKind, IndexStatus, OpenDocument, VaultEntry } from "./types";
+import {
+  baseName,
+  insideLibrary,
+  joinPath,
+  kindOf,
+  libraryOf,
+  parentOf,
+  remapPath,
+  stripExtension,
+  validateName,
+  withExtension,
+} from "./lib/paths";
+import type { Conflict, DocumentKind, IndexStatus, OpenDocument, LibraryEntry } from "./types";
 
 // Excalidraw é grande: só carrega quando um diagrama é aberto.
 const DiagramCanvas = lazy(() => import("./components/DiagramCanvas"));
@@ -31,14 +43,16 @@ const readTheme = (): "dark" | "light" => {
   }
 };
 
+const sameJson = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
 const errorMessage = (err: unknown) => (err instanceof Error ? err.message : "Erro inesperado.");
 
 export function App() {
   const [theme, setTheme] = useState(readTheme);
-  const [vaultOpen, setVaultOpen] = useState(true);
+  const [libraryOpen, setLibraryOpen] = useState(true);
   const [chatOpen, setChatOpen] = useState(true);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [entries, setEntries] = useState<VaultEntry[]>([]);
+  const [entries, setEntries] = useState<LibraryEntry[]>([]);
   const [treeError, setTreeError] = useState<string | null>(null);
   const [docs, setDocs] = useState<OpenDocument[]>([]);
   const [activePath, setActivePath] = useState<string | null>(null);
@@ -58,21 +72,25 @@ export function App() {
     setDocs((prev) => prev.map((d) => (d.path === path ? fn(d) : d)));
   }, []);
 
-  // ---------- Vault e índice ----------
+  // ---------- Bibliotecas e índice ----------
+  // O polling roda a cada 4 s: só troca o estado quando o conteúdo mudou, para não redesenhar o app à toa.
   const refreshTree = useCallback(async () => {
     try {
-      setEntries(await api.tree());
+      const tree = await api.tree();
+      setEntries((prev) => (sameJson(prev, tree) ? prev : tree));
       setTreeError(null);
     } catch (err) {
-      setTreeError(`Não foi possível ler o vault: ${errorMessage(err)}`);
+      setTreeError(`Não foi possível ler as bibliotecas: ${errorMessage(err)}`);
     }
   }, []);
 
   const refreshIndex = useCallback(async () => {
     try {
-      setIndex(await api.indexStatus());
+      const status = await api.indexStatus();
+      setIndex((prev) => (sameJson(prev, status) ? prev : status));
     } catch {
-      setIndex({ status: "offline", db_connected: false, last_error: "API indisponível." });
+      const offline: IndexStatus = { status: "offline", db_connected: false, last_error: "API indisponível." };
+      setIndex((prev) => (sameJson(prev, offline) ? prev : offline));
     }
   }, []);
 
@@ -163,8 +181,29 @@ export function App() {
     [],
   );
 
+  const libraries = useMemo(() => entries.filter((e) => e.type === "library").map((e) => e.path), [entries]);
+  // Biblioteca de trabalho: a do documento ativo, ou a primeira existente.
+  const currentLibrary = activePath ? libraryOf(activePath) : (libraries[0] ?? null);
+
+  const newLibrary = useCallback(() => {
+    setPrompt({
+      title: "Nova biblioteca",
+      label: "Nome da biblioteca",
+      initial: "nova-biblioteca",
+      confirmLabel: "Criar",
+      validate: validateName,
+      onSubmit: async (name) => {
+        await api.createLibrary(name);
+        await refreshTree();
+      },
+    });
+  }, [refreshTree]);
+
+  /** Cria nota ou diagrama em `folder` (dentro de uma biblioteca). Sem pasta, usa a biblioteca de trabalho. */
   const createDocument = useCallback(
     (folder: string, kind: DocumentKind, suggested?: string) => {
+      const target = folder || currentLibrary;
+      if (!target) return newLibrary();
       setPrompt({
         title: kind === "diagram" ? "Novo diagrama" : "Nova nota",
         label: "Nome do arquivo",
@@ -173,7 +212,7 @@ export function App() {
         validate: validateName,
         onSubmit: async (name) => {
           const fileName = withExtension(name, kind);
-          const path = joinPath(folder, fileName);
+          const path = joinPath(target, fileName);
           const content = kind === "diagram" ? EMPTY_DIAGRAM : `# ${stripExtension(fileName)}\n\n`;
           await api.createFile(path, content);
           await refreshTree();
@@ -181,28 +220,31 @@ export function App() {
         },
       });
     },
-    [openPath, refreshTree],
+    [currentLibrary, newLibrary, openPath, refreshTree],
   );
 
-  /** [[alvo]]: resolve pelo índice; sem índice, procura pelo nome; se não existir, oferece criar. */
+  /** [[alvo]]: resolve dentro da biblioteca do documento ativo; sem índice, procura pelo nome; se não existir, oferece criar. */
   const openLink = useCallback(
     async (target: string) => {
       const clean = stripExtension(target.trim());
+      const library = activePath ? libraryOf(activePath) : currentLibrary;
+      if (!library) return;
       let path: string | null = null;
       try {
-        path = await api.resolveLink(clean);
+        path = await api.resolveLink(clean, library);
       } catch {
         const lower = clean.toLowerCase();
+        const docs = entries.filter((e) => e.type === "file" && e.kind !== "asset" && libraryOf(e.path) === library);
         path =
-          entries.find((e) => e.type === "file" && e.kind !== "asset" && stripExtension(e.path).toLowerCase() === lower)?.path ??
-          entries.find((e) => e.type === "file" && e.kind !== "asset" && stripExtension(e.name).toLowerCase() === lower.split("/").pop())?.path ??
+          docs.find((e) => stripExtension(insideLibrary(e.path)).toLowerCase() === lower)?.path ??
+          docs.find((e) => stripExtension(e.name).toLowerCase() === lower.split("/").pop())?.path ??
           null;
       }
       if (path) return openPath(path);
-      const active = docsRef.current.find((d) => d.path === activePath);
-      createDocument(clean.includes("/") ? parentOf(clean) : active ? parentOf(active.path) : "", "markdown", baseName(clean));
+      const folder = clean.includes("/") ? joinPath(library, parentOf(clean)) : activePath ? parentOf(activePath) : library;
+      createDocument(folder, "markdown", baseName(clean));
     },
-    [activePath, createDocument, entries, openPath],
+    [activePath, createDocument, currentLibrary, entries, openPath],
   );
 
   const closeDoc = useCallback(
@@ -235,8 +277,9 @@ export function App() {
     [flushAll, refreshTree],
   );
 
-  const vaultActions: VaultActions = {
+  const libraryActions: LibraryActions = {
     open: (path) => void openPath(path),
+    newLibrary,
     newNote: (folder) => createDocument(folder, "markdown"),
     newDiagram: (folder) => createDocument(folder, "diagram"),
     newFolder: (folder) =>
@@ -272,8 +315,8 @@ export function App() {
         title: entry.type === "directory" ? "Excluir pasta" : "Excluir arquivo",
         message:
           entry.type === "directory"
-            ? `Excluir "${entry.path}" e tudo o que está dentro dela? Tudo vai para vault/.lixeira e pode ser recuperado pelo disco.`
-            : `Excluir "${entry.path}"? O arquivo vai para vault/.lixeira e pode ser recuperado pelo disco.`,
+            ? `Excluir "${entry.path}" e tudo o que está dentro dela? Tudo vai para a pasta .lixeira da biblioteca e pode ser recuperado pelo disco.`
+            : `Excluir "${entry.path}"? O arquivo vai para a pasta .lixeira da biblioteca e pode ser recuperado pelo disco.`,
         confirmLabel: "Excluir",
         danger: true,
         onConfirm: async () => {
@@ -369,12 +412,12 @@ export function App() {
 
   useKeyboardShortcuts({
     onCloseTab: () => activePath && void closeDoc(activePath),
-    onToggleVault: () => setVaultOpen((v) => !v),
+    onToggleLibraries: () => setLibraryOpen((v) => !v),
     onToggleChat: () => setChatOpen((v) => !v),
     onFocusMode: () => {
       // Modo foco: some com as laterais; repetir o atalho traz as duas de volta.
-      const anyOpen = vaultOpen || chatOpen;
-      setVaultOpen(!anyOpen);
+      const anyOpen = libraryOpen || chatOpen;
+      setLibraryOpen(!anyOpen);
       setChatOpen(!anyOpen);
     },
     onCommandPalette: () => setPaletteOpen((v) => !v),
@@ -389,10 +432,10 @@ export function App() {
       <AppHeader
         index={index}
         saveState={activeDoc?.state ?? null}
-        isVaultOpen={vaultOpen}
+        isLibraryPanelOpen={libraryOpen}
         isChatOpen={chatOpen}
         theme={theme}
-        onToggleVault={() => setVaultOpen((v) => !v)}
+        onToggleLibraries={() => setLibraryOpen((v) => !v)}
         onToggleChat={() => setChatOpen((v) => !v)}
         onToggleTheme={toggleTheme}
         onOpenCommandPalette={() => setPaletteOpen(true)}
@@ -400,31 +443,56 @@ export function App() {
       />
 
       <div className="studio-body">
-        {vaultOpen && (
-          <div className="panel-vault">
-            <VaultTree entries={entries} activePath={activePath ?? undefined} error={treeError} actions={vaultActions} />
+        {libraryOpen && (
+          <div className="panel-library">
+            <ErrorBoundary area="Bibliotecas">
+              <LibraryTree entries={entries} activePath={activePath ?? undefined} error={treeError} actions={libraryActions} />
+            </ErrorBoundary>
           </div>
         )}
 
         <main className="workspace">
           <DocumentTabs documents={docs} activePath={activePath} onSelect={setActivePath} onClose={(p) => void closeDoc(p)} />
           <div className="workspace-body">
+            <ErrorBoundary area="Área de trabalho" key={activePath ?? "vazio"}>
             {!activeDoc ? (
               <div className="workspace-empty">
                 <BrandMark variant="solid" title="" />
                 <h2>Biblo</h2>
-                <p>Notas em Markdown, diagramas no Excalidraw e um copiloto que responde com base no seu vault. Tudo fica em arquivos na pasta ./vault.</p>
-                <div className="actions">
-                  <button type="button" className="btn btn-primary" onClick={() => createDocument("", "markdown")}>
-                    <FilePlus2 size={14} /> Nova nota
-                  </button>
-                  <button type="button" className="btn btn-secondary" onClick={() => createDocument("", "diagram")}>
-                    <Workflow size={14} /> Novo diagrama
-                  </button>
-                  <button type="button" className="btn btn-ghost" onClick={() => setPaletteOpen(true)}>
-                    Buscar <span className="kbd">Ctrl K</span>
-                  </button>
-                </div>
+                {currentLibrary ? (
+                  <>
+                    <p>
+                      Notas em Markdown, diagramas no Excalidraw e o chat Pergunte para o Biblo, que responde com base nos materiais de cada
+                      biblioteca. Biblioteca atual: <strong>{currentLibrary}</strong>.
+                    </p>
+                    <div className="actions">
+                      <button type="button" className="btn btn-primary" onClick={() => createDocument("", "markdown")}>
+                        <FilePlus2 size={14} /> Nova nota
+                      </button>
+                      <button type="button" className="btn btn-secondary" onClick={() => createDocument("", "diagram")}>
+                        <Workflow size={14} /> Novo diagrama
+                      </button>
+                      <button type="button" className="btn btn-ghost" onClick={newLibrary}>
+                        <LibraryBig size={14} /> Nova biblioteca
+                      </button>
+                      <button type="button" className="btn btn-ghost" onClick={() => setPaletteOpen(true)}>
+                        Buscar <span className="kbd">Ctrl K</span>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      Cada biblioteca é uma pasta mestra com materiais dedicados: notas, diagramas e imagens. O Biblo
+                      responde com base no que está nela. Crie a primeira para começar.
+                    </p>
+                    <div className="actions">
+                      <button type="button" className="btn btn-primary" onClick={newLibrary}>
+                        <LibraryBig size={14} /> Nova biblioteca
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ) : activeDoc.kind === "diagram" ? (
               <Suspense fallback={<div className="canvas-loading">Carregando o canvas…</div>}>
@@ -442,12 +510,20 @@ export function App() {
                 onOpenPath={(p) => void openPath(p)}
               />
             )}
+            </ErrorBoundary>
           </div>
         </main>
 
         {chatOpen && (
           <div className="panel-chat">
-            <ChatPanel onOpenPath={(p, line) => void openPath(p, line)} onClose={() => setChatOpen(false)} />
+            <ErrorBoundary area="Pergunte para o Biblo">
+              <ChatPanel
+                libraries={libraries}
+                currentLibrary={currentLibrary}
+                onOpenPath={(p, line) => void openPath(p, line)}
+                onClose={() => setChatOpen(false)}
+              />
+            </ErrorBoundary>
           </div>
         )}
       </div>
@@ -459,6 +535,7 @@ export function App() {
           onOpenPath={(p, line) => void openPath(p, line)}
           onNewNote={() => createDocument("", "markdown")}
           onNewDiagram={() => createDocument("", "diagram")}
+          onNewLibrary={newLibrary}
           onToggleTheme={toggleTheme}
         />
       )}

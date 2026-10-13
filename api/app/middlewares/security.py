@@ -40,7 +40,7 @@ def _reject(code: int, detail: str) -> JSONResponse:
 
 
 class SecurityMiddleware(BaseHTTPMiddleware):
-    """Barreiras de origem para requisições que alteram o vault.
+    """Barreiras de origem para requisições que alteram as bibliotecas.
 
     Erros são devolvidos como JSONResponse: HTTPException levantada dentro de
     BaseHTTPMiddleware não passa pelos exception handlers e viraria 500.

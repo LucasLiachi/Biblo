@@ -60,16 +60,16 @@ async def pool() -> AsyncIterator[asyncpg.Pool]:
 
 
 @pytest.fixture
-def vault(tmp_path: Path) -> Path:
-    root = tmp_path / "vault"
+def root(tmp_path: Path) -> Path:
+    root = tmp_path / "bibliotecas"
     (root / "notas").mkdir(parents=True)
     (root / "notas" / "config.md").write_text("# Configuração\nA configuração do gateway fica no .env.\n", encoding="utf-8")
     (root / "notas" / "indice.md").write_text("# Índice\nComece por [[config]] e [[inexistente]].\n", encoding="utf-8")
     return root
 
 
-async def test_reconcile_indexes_and_search_ignores_accents(pool: asyncpg.Pool, vault: Path) -> None:
-    indexer = Indexer(vault, pool, FakeEmbedder())
+async def test_reconcile_indexes_and_search_ignores_accents(pool: asyncpg.Pool, root: Path) -> None:
+    indexer = Indexer(root, pool, FakeEmbedder())
     result = await indexer.reconcile()
     assert result == {"scanned": 2, "reindexed": 2, "removed": 0}
 
@@ -80,19 +80,19 @@ async def test_reconcile_indexes_and_search_ignores_accents(pool: asyncpg.Pool, 
     assert hits[0].start_line == 1
 
 
-async def test_reconcile_is_incremental_and_removes_orphans(pool: asyncpg.Pool, vault: Path) -> None:
-    indexer = Indexer(vault, pool, FakeEmbedder())
+async def test_reconcile_is_incremental_and_removes_orphans(pool: asyncpg.Pool, root: Path) -> None:
+    indexer = Indexer(root, pool, FakeEmbedder())
     await indexer.reconcile()
     assert (await indexer.reconcile())["reindexed"] == 0
 
-    (vault / "notas" / "indice.md").unlink()
-    (vault / "notas" / "nova.md").write_text("# Nova\ncriada com a API parada", encoding="utf-8")
+    (root / "notas" / "indice.md").unlink()
+    (root / "notas" / "nova.md").write_text("# Nova\ncriada com a API parada", encoding="utf-8")
     result = await indexer.reconcile()
     assert result == {"scanned": 2, "reindexed": 1, "removed": 1}
 
 
-async def test_links_are_stored_for_backlinks(pool: asyncpg.Pool, vault: Path) -> None:
-    await Indexer(vault, pool, FakeEmbedder()).reconcile()
+async def test_links_are_stored_for_backlinks(pool: asyncpg.Pool, root: Path) -> None:
+    await Indexer(root, pool, FakeEmbedder()).reconcile()
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             "SELECT d.path, l.target_key FROM links l JOIN documents d ON d.id = l.source_id ORDER BY 2"
@@ -100,12 +100,12 @@ async def test_links_are_stored_for_backlinks(pool: asyncpg.Pool, vault: Path) -
     assert [(r["path"], r["target_key"]) for r in rows] == [("notas/indice.md", "config"), ("notas/indice.md", "inexistente")]
 
 
-async def test_changing_embedding_model_invalidates_old_vectors(pool: asyncpg.Pool, vault: Path) -> None:
-    first = Indexer(vault, pool, FakeEmbedder("fake-v1"))
+async def test_changing_embedding_model_invalidates_old_vectors(pool: asyncpg.Pool, root: Path) -> None:
+    first = Indexer(root, pool, FakeEmbedder("fake-v1"))
     await first.check_embedding_space()
     await first.reconcile()
 
-    second = Indexer(vault, pool, FakeEmbedder("fake-v2"))
+    second = Indexer(root, pool, FakeEmbedder("fake-v2"))
     await second.check_embedding_space()
     await second.refresh_counts()
     assert second.state.chunks_without_embedding == second.state.total_chunks > 0
@@ -116,19 +116,32 @@ async def test_changing_embedding_model_invalidates_old_vectors(pool: asyncpg.Po
     assert models == {"fake:fake-v2"}
 
 
-async def test_without_embeddings_search_falls_back_to_text(pool: asyncpg.Pool, vault: Path) -> None:
-    indexer = Indexer(vault, pool, EmbeddingsClient(provider="none"))
+async def test_without_embeddings_search_falls_back_to_text(pool: asyncpg.Pool, root: Path) -> None:
+    indexer = Indexer(root, pool, EmbeddingsClient(provider="none"))
     await indexer.reconcile()
     async with pool.acquire() as conn:
         hits, mode = await hybrid_search(conn, "gateway", indexer.embedder)
     assert mode == "text" and hits[0].path == "notas/config.md"
 
 
-async def test_natural_language_question_matches_any_term(pool: asyncpg.Pool, vault: Path) -> None:
-    indexer = Indexer(vault, pool, EmbeddingsClient(provider="none"))
+async def test_natural_language_question_matches_any_term(pool: asyncpg.Pool, root: Path) -> None:
+    indexer = Indexer(root, pool, EmbeddingsClient(provider="none"))
     await indexer.reconcile()
     async with pool.acquire() as conn:
         hits, _ = await hybrid_search(conn, "Como funciona a configuração?", indexer.embedder)
         empty, _ = await hybrid_search(conn, "como a de", indexer.embedder)  # só stopwords
     assert hits and hits[0].path == "notas/config.md"
     assert empty == []
+
+
+async def test_search_can_be_scoped_to_one_library(pool: asyncpg.Pool, root: Path) -> None:
+    (root / "outra").mkdir()
+    (root / "outra" / "gateway.md").write_text("# Gateway\nO gateway da outra biblioteca.\n", encoding="utf-8")
+    (root / "solta.md").write_text("# Solta\ngateway fora de biblioteca\n", encoding="utf-8")
+    indexer = Indexer(root, pool, EmbeddingsClient(provider="none"))
+    assert (await indexer.reconcile())["scanned"] == 3  # o arquivo solto na raiz não entra
+    async with pool.acquire() as conn:
+        everywhere, _ = await hybrid_search(conn, "gateway", indexer.embedder)
+        only_other, _ = await hybrid_search(conn, "gateway", indexer.embedder, library="outra")
+    assert {h.path for h in everywhere} == {"notas/config.md", "outra/gateway.md"}
+    assert [h.path for h in only_other] == ["outra/gateway.md"]

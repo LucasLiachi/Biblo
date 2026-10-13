@@ -155,19 +155,6 @@ body {
   text-decoration: none;
 }
 
-.vault-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  padding: 3px 8px;
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--muted-foreground);
-}
-
 .header-center {
   display: flex;
   align-items: center;
@@ -181,9 +168,9 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   3. VaultTree (Explorador de Pastas e Arquivos)
+   3. LibraryTree (Explorador de Pastas e Arquivos)
    -------------------------------------------------------------------------- */
-.vault-tree {
+.library-tree {
   width: 100%;
   max-width: 320px;
   background: var(--panel-bg);
@@ -399,7 +386,7 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   6. ChatPanel (Copiloto de IA & RAG Híbrido)
+   6. ChatPanel (Pergunte para o Biblo: chat RAG)
    -------------------------------------------------------------------------- */
 .chat-panel {
   width: 100%;
@@ -645,7 +632,7 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   10. Breadcrumb (Navegação de Caminho no Vault)
+   10. Breadcrumb (Caminho na biblioteca)
    -------------------------------------------------------------------------- */
 .breadcrumb {
   display: flex;

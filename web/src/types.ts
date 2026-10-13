@@ -1,15 +1,16 @@
 export type DocumentKind = "markdown" | "diagram";
 export type EntryKind = DocumentKind | "asset";
 
-export interface VaultEntry {
+export interface LibraryEntry {
   path: string;
   name: string;
-  type: "file" | "directory";
+  /** "library": pasta mestra no primeiro nível; só ela pode existir na raiz. */
+  type: "library" | "directory" | "file";
   kind?: EntryKind;
   size?: number;
 }
 
-export interface TreeNode extends VaultEntry {
+export interface TreeNode extends LibraryEntry {
   children: TreeNode[];
 }
 
@@ -73,4 +74,27 @@ export interface Conflict {
 export interface LinksInfo {
   backlinks: Array<{ path: string; title: string; kind: DocumentKind }>;
   outgoing: Array<{ target: string; path: string | null }>;
+}
+
+export interface LLMSettings {
+  base_url: string;
+  has_api_key: boolean;
+  default_model: string;
+  guide_prompt: string;
+  embedding_provider: EmbeddingProvider;
+  embedding_model: string;
+  embedding_dim: number;
+}
+
+/** "chat": mesmo servidor e token do chat; "ollama": Ollama local; "none": só busca textual. */
+export type EmbeddingProvider = "chat" | "ollama" | "none";
+
+export interface LLMSettingsInput {
+  base_url: string;
+  /** undefined mantém o token salvo; "" remove. */
+  api_key?: string;
+  default_model: string;
+  guide_prompt: string;
+  embedding_provider?: EmbeddingProvider;
+  embedding_model?: string;
 }

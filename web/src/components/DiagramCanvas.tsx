@@ -82,7 +82,7 @@ export default function DiagramCanvas({ doc, theme, onChange }: DiagramCanvasPro
       <div className="doc-bar">
         <Breadcrumb path={doc.path} />
         <span className="canvas-autosave-badge" aria-live="polite">
-          {doc.state === "saved" ? "Gravado no vault" : doc.state === "conflict" ? "Conflito com o disco" : doc.state === "error" ? "Falha ao gravar" : "Gravando…"}
+          {doc.state === "saved" ? "Gravado em disco" : doc.state === "conflict" ? "Conflito com o disco" : doc.state === "error" ? "Falha ao gravar" : "Gravando…"}
         </span>
       </div>
       {converted && (
@@ -110,7 +110,7 @@ export default function DiagramCanvas({ doc, theme, onChange }: DiagramCanvasPro
             <MainMenu.DefaultItems.Help />
           </MainMenu>
           <WelcomeScreen>
-            <WelcomeScreen.Hints.ToolbarHint>Escolha uma forma e desenhe. Setas ligadas viram fluxo no copiloto.</WelcomeScreen.Hints.ToolbarHint>
+            <WelcomeScreen.Hints.ToolbarHint>Escolha uma forma e desenhe. Setas ligadas viram fluxo para o Biblo.</WelcomeScreen.Hints.ToolbarHint>
             <WelcomeScreen.Hints.HelpHint />
           </WelcomeScreen>
         </Excalidraw>

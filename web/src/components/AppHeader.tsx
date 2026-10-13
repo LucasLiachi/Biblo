@@ -7,10 +7,10 @@ import { SyncIndicator } from "./SyncIndicator";
 interface AppHeaderProps {
   index: IndexStatus | null;
   saveState: SaveState | null;
-  isVaultOpen: boolean;
+  isLibraryPanelOpen: boolean;
   isChatOpen: boolean;
   theme: "dark" | "light";
-  onToggleVault: () => void;
+  onToggleLibraries: () => void;
   onToggleChat: () => void;
   onToggleTheme: () => void;
   onOpenCommandPalette: () => void;
@@ -25,13 +25,12 @@ export function AppHeader(props: AppHeaderProps) {
           <BrandMark />
           Biblo
         </span>
-        <span className="vault-indicator" title="Pasta do vault no disco">./vault</span>
       </div>
 
       <div className="header-center">
         <button type="button" className="btn btn-secondary" onClick={props.onOpenCommandPalette}>
           <Command size={14} aria-hidden="true" />
-          Buscar no vault
+          Buscar nas bibliotecas
           <span className="kbd">Ctrl K</span>
         </button>
       </div>
@@ -43,11 +42,11 @@ export function AppHeader(props: AppHeaderProps) {
         </button>
         <button
           type="button"
-          className={`btn btn-ghost btn-icon ${props.isVaultOpen ? "active" : ""}`}
-          onClick={props.onToggleVault}
-          aria-pressed={props.isVaultOpen}
-          title="Painel do vault (Ctrl+Shift+B)"
-          aria-label="Alternar painel do vault"
+          className={`btn btn-ghost btn-icon ${props.isLibraryPanelOpen ? "active" : ""}`}
+          onClick={props.onToggleLibraries}
+          aria-pressed={props.isLibraryPanelOpen}
+          title="Painel de bibliotecas (Ctrl+Shift+B)"
+          aria-label="Alternar painel de bibliotecas"
         >
           <PanelLeft size={16} />
         </button>
@@ -56,8 +55,8 @@ export function AppHeader(props: AppHeaderProps) {
           className={`btn btn-ghost btn-icon ${props.isChatOpen ? "active" : ""}`}
           onClick={props.onToggleChat}
           aria-pressed={props.isChatOpen}
-          title="Copiloto (Ctrl+Shift+L)"
-          aria-label="Alternar copiloto"
+          title="Pergunte para o Biblo (Ctrl+Shift+L)"
+          aria-label="Alternar Pergunte para o Biblo"
         >
           <PanelRight size={16} />
         </button>

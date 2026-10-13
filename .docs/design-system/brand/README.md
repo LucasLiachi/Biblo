@@ -25,7 +25,7 @@ Os tokens da marca são iguais nos dois temas e **não servem para texto de inte
 | `app-icon-amber.svg` | Variante sobre fundo âmbar (materiais de divulgação) |
 | `app-icon-paper.svg` | Variante duotone sobre papel, com sorriso âmbar (fundos claros) |
 | `app-icon-outline.svg` | Variante em linha com moldura, para impressão monocromática |
-| `owl-solid.svg` | Coruja sem moldura (estados vazios, avatar do copiloto) |
+| `owl-solid.svg` | Coruja sem moldura (estados vazios, avatar do Biblo no chat) |
 | `owl-duotone.svg` | Coruja sem moldura com olhos e sorriso âmbar |
 | `owl-line.svg` | Coruja em traço de 2,5 px (menus e ilustrações leves) |
 | `png/favicon-16.png`, `favicon-32.png`, `favicon-48.png` | Navegadores sem suporte a favicon SVG |

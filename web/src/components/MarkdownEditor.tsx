@@ -38,8 +38,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { api } from "../api/client";
 import { extractOutline, toggleTask } from "../lib/markdown";
-import { stripExtension } from "../lib/vault";
-import type { LinksInfo, OpenDocument, VaultEntry } from "../types";
+import { insideLibrary, libraryOf, stripExtension } from "../lib/paths";
+import type { LinksInfo, OpenDocument, LibraryEntry } from "../types";
 import { Breadcrumb } from "./Breadcrumb";
 import { MarkdownPreview } from "./MarkdownPreview";
 
@@ -48,7 +48,7 @@ const MODE_KEY = "biblo.editor.mode";
 
 interface MarkdownEditorProps {
   doc: OpenDocument;
-  entries: VaultEntry[];
+  entries: LibraryEntry[];
   theme: "dark" | "light";
   jumpTo?: { line: number; nonce: number } | null;
   onChange: (path: string, content: string) => void;
@@ -175,7 +175,7 @@ export function MarkdownEditor({ doc, entries, theme, jumpTo, onChange, onOpenLi
       const match = ctx.matchBefore(/\[\[[^\]\n]*/);
       if (!match) return null;
       const options = latest.current.entries
-        .filter((e) => e.type === "file" && e.kind !== "asset")
+        .filter((e) => e.type === "file" && e.kind !== "asset" && libraryOf(e.path) === libraryOf(latest.current.path))
         .map((e) => ({
           label: stripExtension(e.name),
           detail: e.path,
@@ -279,12 +279,13 @@ export function MarkdownEditor({ doc, entries, theme, jumpTo, onChange, onOpenLi
   const act = (fn: (v: EditorView) => void) => () => view.current && fn(view.current);
 
   const uploadImage = async (file: File) => {
-    const path = await api.uploadAsset(file);
-    view.current && insertBlock(view.current, `![${stripExtension(file.name)}](${path})`);
+    // A imagem fica em <biblioteca>/assets; a nota guarda o caminho relativo à biblioteca.
+    const path = await api.uploadAsset(file, `${libraryOf(doc.path)}/assets`);
+    view.current && insertBlock(view.current, `![${stripExtension(file.name)}](${insideLibrary(path)})`);
   };
 
   const stateLabel: Record<OpenDocument["state"], string> = {
-    saved: "Gravado no vault",
+    saved: "Gravado em disco",
     dirty: "Alterado…",
     saving: "Gravando…",
     conflict: "Conflito com o disco",
@@ -294,7 +295,12 @@ export function MarkdownEditor({ doc, entries, theme, jumpTo, onChange, onOpenLi
   return (
     <>
       <div className="doc-bar">
-        <Breadcrumb path={doc.path} />
+        <div className="doc-bar-left">
+          <button type="button" className={`btn btn-ghost btn-icon ${showSide ? "active" : ""}`} title="Estrutura, backlinks e links de saída" aria-label="Mostrar ou ocultar estrutura e backlinks" aria-pressed={showSide} onClick={() => setShowSide((s) => !s)}>
+            <ListTree size={15} />
+          </button>
+          <Breadcrumb path={doc.path} />
+        </div>
         <div className="toolbar" role="toolbar" aria-label="Formatação">
           {mode !== "preview" && (
             <>
@@ -307,7 +313,7 @@ export function MarkdownEditor({ doc, entries, theme, jumpTo, onChange, onOpenLi
               <button type="button" className="btn btn-ghost btn-icon" title="Link para nota [[ ]]" aria-label="Wikilink" onClick={act((v) => wrapSelection(v, "[[", "]]", "nota"))}><Link2 size={15} /></button>
               <button type="button" className="btn btn-ghost btn-icon" title="Tabela" aria-label="Tabela" onClick={act((v) => insertBlock(v, TABLE))}><Table size={15} /></button>
               <button type="button" className="btn btn-ghost btn-icon" title="Fluxograma Mermaid" aria-label="Fluxograma" onClick={act((v) => insertBlock(v, FLOWCHART))}><Workflow size={15} /></button>
-              <button type="button" className="btn btn-ghost btn-icon" title="Imagem do vault" aria-label="Inserir imagem" onClick={() => fileInput.current?.click()}><ImagePlus size={15} /></button>
+              <button type="button" className="btn btn-ghost btn-icon" title="Imagem da biblioteca" aria-label="Inserir imagem" onClick={() => fileInput.current?.click()}><ImagePlus size={15} /></button>
               <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden
                 onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void uploadImage(f); }} />
               <span className="toolbar-separator" />
@@ -320,29 +326,10 @@ export function MarkdownEditor({ doc, entries, theme, jumpTo, onChange, onOpenLi
               </button>
             ))}
           </div>
-          <button type="button" className={`btn btn-ghost btn-icon ${showSide ? "active" : ""}`} title="Estrutura e backlinks" aria-label="Estrutura e backlinks" aria-pressed={showSide} onClick={() => setShowSide((s) => !s)}>
-            <ListTree size={15} />
-          </button>
         </div>
       </div>
 
       <div className="editor-layout">
-        <div className={`editor-main ${mode === "split" ? "split" : ""}`}>
-          {mode !== "preview" && <div className="cm-host" ref={host} />}
-          {mode !== "edit" && (
-            <MarkdownPreview
-              source={doc.content}
-              theme={theme}
-              onOpenLink={onOpenLink}
-              onToggleTask={(line) => {
-                const next = toggleTask(doc.content, line);
-                const v = view.current;
-                if (v) v.dispatch({ changes: { from: 0, to: v.state.doc.length, insert: next } });
-                else onChange(doc.path, next);
-              }}
-            />
-          )}
-        </div>
         {showSide && (
           <aside className="side-panel" aria-label="Estrutura e conexões">
             <section>
@@ -393,6 +380,23 @@ export function MarkdownEditor({ doc, entries, theme, jumpTo, onChange, onOpenLi
             </section>
           </aside>
         )}
+        <div className={`editor-main ${mode === "split" ? "split" : ""}`}>
+          {mode !== "preview" && <div className="cm-host" ref={host} />}
+          {mode !== "edit" && (
+            <MarkdownPreview
+              source={doc.content}
+              library={libraryOf(doc.path)}
+              theme={theme}
+              onOpenLink={onOpenLink}
+              onToggleTask={(line) => {
+                const next = toggleTask(doc.content, line);
+                const v = view.current;
+                if (v) v.dispatch({ changes: { from: 0, to: v.state.doc.length, insert: next } });
+                else onChange(doc.path, next);
+              }}
+            />
+          )}
+        </div>
       </div>
 
       <div className="doc-status" aria-live="polite">
